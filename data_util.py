@@ -1,151 +1,116 @@
-import numpy as np
-import json
-from pprint import pprint
 import requests
-import jsonpickle
+import numpy as np
+from time import sleep
+import json
+
 
 class NumpyException(Exception):
 	pass
 
-# simple wrapper class to make it easier to compute a json to save to file
-# class MatchDataBase:
-# 	def __init__(self):
-# 		self.matches_complete = None
-
-	# convert match data to json
-	# def toJSON(self):
-	# 	# http://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable
-	# 	return json.dumps(self, default=lambda o: o.__dict__,sort_keys=False, indent=2)
-
-# class to old the match data that is needed (excluding what we don't need)
-class MatchData:
-	def __init__(self):
-		# current needed data
-		self.dire_score = None
-		self.radiant_score = None
-		self.radiant_win = None
-		self.picks = []
-
-# class to hold the pick_ban data
-class MatchBanPicks:
-	def __init__(self, is_pick, hero_id, team):
-		self.is_pick = is_pick
-		self.hero_id = hero_id
-		self.team = team
 
 class DotaData:
 	def __init__(self):
-		self.base_api = "https://api.opendota.com/api/matches/"
-		self.data = None
-		self.matches = []
+		self.base_api = "https://api.opendota.com/api/"
 
 	# load match ids from a chosen json file
-	def loadMatchIds(self, file):
+	def loadMatches(self, file_path):
 		# Load in json file of matches
-		with open(file) as data_file:
+		with open(file_path) as data_file:
 			# save json to memory
-			self.data = json.load(data_file)
+			return json.load(data_file)
 
-	# return the json of match ids
-	def getMatchIds(self):
-		# return json file
-		return self.data
-
-	# using the json of match ids, call the opendota api to get the json for each match using each id
-	def loadMatchData(self):
-		# get the match ids from json into a single array
-		# instead of doing it in the same for loop, I thought this may be easier for now
-		match_ids = [datum['match_id'] for datum in self.data]
-		# loop all match ids
-		for match in match_ids:
-			# call api to get json for each match containing all match info
-			r = requests.get("{}{}".format(self.base_api, str(match)))
-			# check for return status
-			assert r.status_code == 200
-			# create temp object to hold current match
-			current_match = MatchData()
-			# set match object's data that is from the json pulled for this current match id
-			current_match.dire_score = r.json()['dire_score']
-			current_match.radiant_score = r.json()['radiant_score']
-			current_match.radiant_win = r.json()['radiant_win']
-			picks = r.json()['picks_bans']
-			# the match json contains a array of picks and bans
-			# loop this array and set an array of the MatchBanPick object which the needed data from that
-			for pick in picks:
-				# set new object with the 3 parameters we need
-				picked = MatchBanPicks(pick['is_pick'], pick['hero_id'], pick['team'])
-				# append to array
-				current_match.picks.append(picked)
-			# append the curent match with all the needed data to a new array
-			self.matches.append(current_match)
-
-	def matchesToJson(self):
-		# create base class (since we cna turn a class into json, we needed a wrapper class to wrap the array of all the matches
-		# to parse into json. this makes it a lot easier for now)
-		# base = MatchDataBase()
-		# set class array to array of matches
-		# base.matches_complete = self.matches
-		match_json = jsonpickle.encode(self.matches, unpicklable=False)
-
-		# output_file = open("/Data/Matches/match.json", "w")
-		output_file = open("match.json", "w")
-		output_file.write(match_json)
-		output_file.close()
-		# print out json DEBUG
-		# print(base.toJSON())
-		# print(json.dumps([ob.__dict__ for ob in self.matches]))
-
-    #
-	# with open('data.txt', 'w') as outfile:
-	# 	json.dump(data, outfile)
+	# get json from api with parameter
+	def get(self, api):
+		# get request from api
+		# https://pyformat.info/
+		r = requests.get("{}{}".format(self.base_api, api))
+		# make sure request has good status code
+		assert r.status_code == 200
+		# return json of request object
+		return r.json()
 
 
-			#
-			# def extract_base_features(self, data):
-			# 	base_feature_set = set(data[0].keys())
-			# 	extras = set()
-			#
-			# 	for d in data:
-			# 		f = set(d.keys())
-			# 		extras = extras.union(base_feature_set.symmetric_difference(f))
-			# 		base_feature_set = base_feature_set.intersection(f)
-			#
-			# 	return base_feature_set, extras
-			#
-			# def np_ize(self, data):
-			# 	if isinstance(data, list):
-			# 		features = data[0].keys()
-			# 		if all([d.keys() == features for d in data]):
-			# 			l = [[v for k,v in sorted(d.items())] for d in data]
-			# 			return features, np.array(l)
-			# 		else:
-			# 			base_feature_set, extra_features = self.extract_base_features(data)
-			# 			l = [[v for k,v in sorted(d.items()) if k in base_feature_set] for d in data]
-			# 			return base_feature_set, np.array(l)
-			# 	raise NumpyException("Unable to transform data into numpy array")
+	def extract_base_features(self, data):
+		# get keys of the first data element as the form of a set
+		base_feature_set = set(data[0].keys())
+		# create an empty set for the extra features that do not belong to all the data (matches)
+		extras = set()
+		# loop all data
+		for d in data:
+			# create temp set using the keys from current match
+			f = set(d.keys())
+			# symmetric_difference: new set with elements in either s or t but not both
+			# https://docs.python.org/2/library/sets.html
+			# basically, get the features that do not belong to the base feature set
+			# and add them to the current set of other features that do not belong to the base feature set
+			extras = extras.union(base_feature_set.symmetric_difference(f))
+			# intersection: new set with elements common to s and t
+			# set base features of what features bwlong to both the base feature set and the temp f set
+			base_feature_set = base_feature_set.intersection(f)
+		# return the common features and the features that are unique
+		return base_feature_set, extras
+
+	def np_ize(self, data):
+		# check if data is a list
+		if isinstance(data, list):
+			# use any element to get the keys (all elements may or may not have same features)
+			features = data[0].keys()
+			# Return True if all elements of the iterable are true (or if the iterable is empty).
+			# https://docs.python.org/2/library/functions.html#all
+			# checks if all keys of the element are equal for all the other data elements
+			if all([d.keys() == features for d in data]):
+				# sort items: sorted(d.items()) for each d in data
+				# for k, v in sorted(d.items()): get key and vlaue for each sorted d
+				# get v as the value to put into list
+				# we use k, v so seperate the key ans vlaue or else it would display both
+				# now we have list of features (values)
+				l = [[v for k, v in sorted(d.items())] for d in data]
+				# return the feautres (keys) and a np array (vector) of the list of features (values)
+				return features, np.array(l)
+			# there are features that do no belong to all api calls (all data / all matches)
+			else:
+				# get the common features and unique features
+				base_feature_set, extra_features = self.extract_base_features(data)
+				# loop the data : d
+				# get all values in d
+				# if that value belongs to the base_feature_set
+				# add to list
+				l = [[v for k, v in sorted(d.items()) if k in base_feature_set] for d in data]
+				# return the common features and a np vector of the data of that feature set
+				return base_feature_set, np.array(l)
+		raise NumpyException("Unable to transform data into numpy array")
 
 
 if __name__ == "__main__":
 	'''example usage'''
 	d = DotaData()
-	data = d.loadMatchIds('./Data/Matches_By_Id/10_matches.json')
-	d.loadMatchData()
-	d.matchesToJson()
-
-	# features, _data = d.np_ize(data)
-    #
-	# matches = []
-	# match_ids = [datum['match_id'] for datum in data]
-    #
-	# for mid in match_ids[:2]:# just doing 2 in this example so it doesn't take too long
-	# 	matches.append(d.get("matches/{}".format(mid)))
-	# 	sleep(1) # the opendota api requests that this endpoint only be hit 1/s
-    #
-	# features, _data = d.np_ize(matches)
+	data = d.get('publicMatches')
+	# data = d.loadMatches('./Data/Matches_By_Id/10_matches.json')
+	features, _data = d.np_ize(data)
+	matches = []
+	match_ids = [datum['match_id'] for datum in data]
+	for mid in match_ids[:1]:# just doing 2 in this example so it doesn't take too long
+	# for mid in match_ids:
+		matches.append(d.get("matches/{}".format(mid)))
+		sleep(1) # the opendota api requests that this endpoint only be hit 1/s
 
 
+	# print(matches)
 
 
-	
+	#
+	features, _data = d.np_ize(matches)
+
+	print(features)
+	print()
+	print()
+	print()
+	print()
+	print()
+	print(_data)
+
+
+
+
 
 
