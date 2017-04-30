@@ -9,8 +9,6 @@ class NumpyException(Exception):
 class SubDictException(Exception):
 	pass
 
-
-
 class DotaData:
 
 	def __init__(self):
@@ -161,14 +159,3 @@ if __name__ == "__main__":
 
 	h.write_json_file('./Data/Matches/5_matches_short.json', h.shortened_data)
 	
-
-
-	
-
-
-
-
-
-	
-
-
