@@ -83,14 +83,19 @@ class DotaData:
 		with open(filepath, 'w') as f:
 			json.dump(data, f, indent=4)
 
-	def shorten_data(self, data, first_level_keys, second_level_key_dicts):
-		assert isinstance(first_level_keys, list)
-		assert isinstance(second_level_key_dicts, dict)
-		assert all([k in first_level_keys for k in second_level_key_dicts.keys()])
-		_data = self.sub_dicts(data, first_level_keys)
+	def shorten_data(self, data, desired_keys):
+		'''
+		Takes in data as a list of dicts, and desired_keys, which mimics the structure of the dicts to be returned
+		Returns a list of dicts with the structure of desired_keys (2 levels only)
+		'''
+		assert isinstance(desired_keys, dict)
+		_data = self.sub_dicts(data, desired_keys.keys())
 		for d in _data:
-			for key in second_level_key_dicts:
-				d[key] = self.sub_dicts(d[key], second_level_key_dicts[key])
+			for key,value in desired_keys.iteritems():
+				if value is not None:
+					assert isinstance(value, list)
+					assert isinstance(d[key], list)
+					d[key] = self.sub_dicts(d[key], value)
 		return _data
 
 
@@ -136,7 +141,7 @@ class BasicHeroData(DotaData):
 		return data, targets
 
 	def load_data(self, matches):
-		self.shortened_data = self.shorten_data(matches, ['radiant_win', 'players'], {'players': ['isRadiant', 'hero_id']})
+		self.shortened_data = self.shorten_data(matches, {'players': ['isRadiant', 'hero_id'], 'radiant_win': None})
 		data, targets = self.process_matches()
 		self.raw_data = data
 		self.data = self.np_ize(data, True)
