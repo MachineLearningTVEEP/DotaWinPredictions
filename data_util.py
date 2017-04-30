@@ -84,30 +84,30 @@ class DotaData:
 if __name__ == "__main__":
 	'''example usage'''
 	d = DotaData()
-	data = d.get('publicMatches')
-	# data = d.loadMatches('./Data/Matches_By_Id/10_matches.json')
+	# data = d.get('publicMatches')
+	data = d.loadMatches('./Data/Matches_By_Id/10_matches.json')
 	features, _data = d.np_ize(data)
 	matches = []
 	match_ids = [datum['match_id'] for datum in data]
-	for mid in match_ids[:1]:# just doing 2 in this example so it doesn't take too long
+	for mid in match_ids[:5]:# just doing 2 in this example so it doesn't take too long
 	# for mid in match_ids:
 		matches.append(d.get("matches/{}".format(mid)))
 		sleep(1) # the opendota api requests that this endpoint only be hit 1/s
 
 
-	# print(matches)
+	print(matches)
 
 
 	#
-	features, _data = d.np_ize(matches)
-
-	print(features)
+	# features, _data = d.np_ize(matches)
+    #
+    # print(features)
 	print()
 	print()
 	print()
 	print()
 	print()
-	print(_data)
+	# print(_data)
 
 
 
