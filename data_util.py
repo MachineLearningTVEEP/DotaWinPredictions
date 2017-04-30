@@ -9,7 +9,7 @@ class NumpyException(Exception):
 class SubDictException(Exception):
 	pass
 
-class DotaData:
+class DotaData(object):
 
 	def __init__(self):
 		self.base_api = "https://api.opendota.com/api/"
@@ -105,6 +105,7 @@ class BasicHeroData(DotaData):
 		then call load_data on it
 	'''
 	def __init__(self):
+		super(BasicHeroData, self).__init__()
 		self.hero_features, self.hero_id_index_map = self.heroes()
 		self.target_labels = ['radiant_win', 'dire_win']
 
@@ -150,6 +151,11 @@ class BasicHeroData(DotaData):
 
 if __name__ == "__main__":
 	'''example usage'''
+
+	g = BasicHeroData()
+	g.get('pubMatches/')
+
+
 	h = BasicHeroData()
 	matches = h.read_json_file('./Data/Matches/5_matches.json')
 	h.load_data(matches)
