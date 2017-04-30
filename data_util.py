@@ -1,8 +1,12 @@
 import requests
 import numpy as np
 from time import sleep
+import json
 
 class NumpyException(Exception):
+	pass
+
+class SubDictException(Exception):
 	pass
 
 class DotaData:
@@ -37,21 +41,37 @@ class DotaData:
 				return base_feature_set, np.array(l)
 		raise NumpyException("Unable to transform data into numpy array")
 
+	def sub_dicts(self, data, desired_keys):
+		base_feature_set, extras = self.extract_base_features(data)
+		if all(k in base_feature_set for k in desired_keys):
+			return [{k:d[k] for k in desired_keys} for d in data]
+		raise SubDictException("Unable to extract sub dict. Not all keys exist in every member of the data set.")
+
+	def read_json_file(self, filepath):
+		with open(filepath, 'r') as f:
+			return json.load(f)
+
 
 if __name__ == "__main__":
 	'''example usage'''
 	d = DotaData()
-	data = d.get('publicMatches')
-	features, _data = d.np_ize(data)
-
+	match_ids = d.read_json_file('./Data/Matches_By_Id/200_matches.json')
+	match_ids = [item.values()[0] for item in match_ids]
 	matches = []
-	match_ids = [datum['match_id'] for datum in data]
+	for mid in match_ids[:2]:#only getting 2 here so you can see what I'm doing
+		matches.append(d.get('/matches/{}'.format(mid)))
+	print json.dumps(matches[0], indent=4)
+	smaller_dict = d.sub_dicts(matches, ['match_id', 'radiant_win'])
+	print smaller_dict
+	features, data = d.np_ize(smaller_dict)
+	print features
+	print data
 
-	for mid in match_ids[:2]:# just doing 2 in this example so it doesn't take too long
-		matches.append(d.get("matches/{}".format(mid)))
-		sleep(1) # the opendota api requests that this endpoint only be hit 1/s
+	
 
-	features, _data = d.np_ize(matches)
+
+	
+
 
 
 
