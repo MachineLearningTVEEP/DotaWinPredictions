@@ -118,7 +118,6 @@ class BasicHeroData(DotaData):
 		targets = []
 		data = []
 		for match in self.shortened_data:
-			targets.append([int(match['radiant_win']), int(not match['radiant_win'])])
 			datum = [0]*(2*len(self.hero_id_index_map))
 			for player in match['players']:
 				try:
@@ -133,11 +132,12 @@ class BasicHeroData(DotaData):
 					break
 			if any([x != 0 for x in datum]):
 				data.append(datum)
+				targets.append([int(match['radiant_win']), int(not match['radiant_win'])])
 		return data, targets
 
 	def load_data(self, matches):
-		self.shortened_data = h.shorten_data(matches, ['radiant_win', 'players'], {'players': ['isRadiant', 'hero_id']})
-		data, targets = h.process_matches()
+		self.shortened_data = self.shorten_data(matches, ['radiant_win', 'players'], {'players': ['isRadiant', 'hero_id']})
+		data, targets = self.process_matches()
 		self.raw_data = data
 		self.data = self.np_ize(data, True)
 		self.targets = self.np_ize(targets, True)
