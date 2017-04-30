@@ -9,19 +9,21 @@ class NumpyException(Exception):
 class SubDictException(Exception):
 	pass
 
+
+
 class DotaData:
 
 	def __init__(self):
 		self.base_api = "https://api.opendota.com/api/"
-
+		
 	def get(self, api):
 		'''
 		Uses the requests module to get data from the api 
 		Returns the python object that corresponds to the api's json 
 		'''
-		 r = requests.get("{}{}".format(self.base_api, api))
-		 assert r.status_code == 200
-		 return r.json()
+		r = requests.get("{}{}".format(self.base_api, api))
+		assert r.status_code == 200
+		return r.json()
 
 	def extract_base_features(self, data):
 		'''
@@ -40,11 +42,13 @@ class DotaData:
 				
 		return base_feature_set, extras	
 
-	def np_ize(self, data):
+	def np_ize(self, data, np_only=False):
 		'''
 		Turns a list of dicts into an np array 
 		Returns only the subset of keys that belong to all dicts in the list, plus a numpy array
 		'''
+		if np_only is True:
+			return np.array(data)
 		if isinstance(data, list):
 			features = data[0].keys()
 			if all([d.keys() == features for d in data]):
@@ -74,22 +78,88 @@ class DotaData:
 		with open(filepath, 'r') as f:
 			return json.load(f)
 
+	def write_json_file(self, filepath, data):
+		'''
+		Writes a json file; writes json of python object
+		'''
+		with open(filepath, 'w') as f:
+			json.dump(data, f, indent=4)
+
+	def shorten_data(self, data, first_level_keys, second_level_key_dicts):
+		assert isinstance(first_level_keys, list)
+		assert isinstance(second_level_key_dicts, dict)
+		assert all([k in first_level_keys for k in second_level_key_dicts.keys()])
+		_data = self.sub_dicts(data, first_level_keys)
+		for d in _data:
+			for key in second_level_key_dicts:
+				d[key] = self.sub_dicts(d[key], second_level_key_dicts[key])
+		return _data
+
+
+class BasicHeroData(DotaData):
+	'''
+	Basic Usage: Get dota data however you can, be it loaded from a file or directly from the api
+		then call load_data on it
+	'''
+	def __init__(self):
+		self.hero_features, self.hero_id_index_map = self.heroes()
+		self.target_labels = ['radiant_win', 'dire_win']
+
+	def heroes(self):
+		heroes = self.read_json_file('./Data/heroes.json')['heroes']
+		id_name_map = {h['id']: h['name'] for h in heroes}
+		ids = id_name_map.keys()
+		id_index_map = {x:i for i,x in enumerate(ids)}
+		hero_features = ['']*(2*(len(id_index_map)))
+		for i,id in enumerate(id_index_map):
+			hero_features[i] = '{}_{}'.format(id_name_map[id], 'radiant')
+			hero_features[i+len(id_index_map)] = '{}_{}'.format(id_name_map[id], 'dire')
+		return hero_features, id_index_map
+
+	def process_matches(self):
+		targets = []
+		data = []
+		for match in self.shortened_data:
+			targets.append([int(match['radiant_win']), int(not match['radiant_win'])])
+			datum = [0]*(2*len(self.hero_id_index_map))
+			for player in match['players']:
+				try:
+					if player['isRadiant'] is True:
+						index = self.hero_id_index_map[player['hero_id']]
+					else:
+						index = self.hero_id_index_map[player['hero_id']] + len(self.hero_id_index_map)
+					datum[index] = 1
+					
+				except KeyError:#there is some data that has hero_ids that aren't in the heroes.json 
+					datum = [0]*len(datum)
+					break
+			if any([x != 0 for x in datum]):
+				data.append(datum)
+		return data, targets
+
+	def load_data(self, matches):
+		self.shortened_data = h.shorten_data(matches, ['radiant_win', 'players'], {'players': ['isRadiant', 'hero_id']})
+		data, targets = h.process_matches()
+		self.raw_data = data
+		self.data = self.np_ize(data, True)
+		self.targets = self.np_ize(targets, True)
+
 
 if __name__ == "__main__":
 	'''example usage'''
-	d = DotaData()
-	match_ids = d.read_json_file('./Data/Matches_By_Id/200_matches.json')
-	match_ids = [item.values()[0] for item in match_ids]
-	matches = []
-	for mid in match_ids[:2]:#only getting 2 here so you can see what I'm doing
-		matches.append(d.get('/matches/{}'.format(mid)))
-	print json.dumps(matches[0], indent=4)
-	smaller_dict = d.sub_dicts(matches, ['match_id', 'radiant_win'])
-	print smaller_dict
-	features, data = d.np_ize(smaller_dict)
-	print features
-	print data
+	h = BasicHeroData()
+	matches = h.read_json_file('./Data/Matches/5_matches.json')
+	h.load_data(matches)
 
+	features = h.hero_features
+	data = h.data
+	target_labels = h.target_labels
+	targets = h.targets
+
+	assert len(data[0]) == len(features)
+	assert len(targets[0]) == len(target_labels)
+
+	h.write_json_file('./Data/Matches/5_matches_short.json', h.shortened_data)
 	
 
 
