@@ -1,0 +1,452 @@
+[
+    {
+        "players": [
+            {
+                "isRadiant": true,
+                "hero_id": 37
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 70
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 46
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 96
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 91
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 106
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 67
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 57
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 16
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 5
+            }
+        ],
+        "radiant_win": true
+    },
+    {
+        "players": [
+            {
+                "isRadiant": true,
+                "hero_id": 106
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 18
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 57
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 32
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 37
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 5
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 70
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 11
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 55
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 28
+            }
+        ],
+        "radiant_win": false
+    },
+    {
+        "players": [
+            {
+                "isRadiant": true,
+                "hero_id": 100
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 113
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 46
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 104
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 75
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 25
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 37
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 41
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 103
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 95
+            }
+        ],
+        "radiant_win": true
+    },
+    {
+        "players": [
+            {
+                "isRadiant": true,
+                "hero_id": 97
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 74
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 88
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 8
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 20
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 96
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 25
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 37
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 114
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 54
+            }
+        ],
+        "radiant_win": false
+    },
+    {
+        "players": [
+            {
+                "isRadiant": true,
+                "hero_id": 11
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 57
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 5
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 23
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 67
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 28
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 56
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 88
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 74
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 30
+            }
+        ],
+        "radiant_win": false
+    },
+    {
+        "players": [
+            {
+                "isRadiant": true,
+                "hero_id": 102
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 94
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 83
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 110
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 20
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 53
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 106
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 37
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 67
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 114
+            }
+        ],
+        "radiant_win": true
+    },
+    {
+        "players": [
+            {
+                "isRadiant": true,
+                "hero_id": 5
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 32
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 2
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 101
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 109
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 86
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 107
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 8
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 106
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 88
+            }
+        ],
+        "radiant_win": false
+    },
+    {
+        "players": [
+            {
+                "isRadiant": true,
+                "hero_id": 75
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 106
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 107
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 18
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 104
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 100
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 53
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 43
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 112
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 77
+            }
+        ],
+        "radiant_win": false
+    },
+    {
+        "players": [
+            {
+                "isRadiant": true,
+                "hero_id": 86
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 32
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 74
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 8
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 28
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 20
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 93
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 16
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 94
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 83
+            }
+        ],
+        "radiant_win": true
+    },
+    {
+        "players": [
+            {
+                "isRadiant": true,
+                "hero_id": 107
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 18
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 75
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 13
+            },
+            {
+                "isRadiant": true,
+                "hero_id": 102
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 87
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 82
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 97
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 56
+            },
+            {
+                "isRadiant": false,
+                "hero_id": 8
+            }
+        ],
+        "radiant_win": true
+    }
+]
