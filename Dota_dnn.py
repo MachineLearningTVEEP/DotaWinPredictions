@@ -68,11 +68,11 @@ model = Sequential()
 # in the first layer, you must specify the expected input data shape:
 # here, 20-dimensional vectors.
 model.add(Dense(255, activation='relu', input_dim=224))
-model.add(Dropout(0.5))
+# model.add(Dropout(0.5))
 model.add(Dense(512, activation='relu'))
-model.add(Dropout(0.5))
+# model.add(Dropout(0.5))
 model.add(Dense(1024, activation='relu'))
-model.add(Dropout(0.5))
+# model.add(Dropout(0.5))
 # model.add(Dense(1024, activation='relu'))
 # model.add(Dropout(0.5))
 # model.add(Dense(1024, activation='relu'))
@@ -89,8 +89,8 @@ model.add(Dropout(0.5))
 
 
 
-# model.add(Dense(2, activation='softmax'))
-model.add(Dense(2, activation='sigmoid'))
+model.add(Dense(2, activation='softmax'))
+# model.add(Dense(2, activation='sigmoid'))
 
 adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 
