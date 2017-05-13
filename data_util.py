@@ -164,8 +164,9 @@ def gatherdata(write_path, read_path):
     match_ids = [datum['match_id'] for datum in matches_by_id]
     for mid in match_ids:
         # for mid in match_ids:
+        print('Getting: ' + mid)
         matches.append(h.get("matches/{}".format(mid)))
-        sleep(1.1)  # the opendota api requests that this endpoint only be hit 1/s
+        sleep(1.2)  # the opendota api requests that this endpoint only be hit 1/s
     # h.write_json_file('./Data/Matches/45852_matches_full.json', matches)
 
     h.load_data(matches)
