@@ -154,7 +154,7 @@ class BasicHeroData(DotaData):
         self.data = self.np_ize(data, True)
         self.targets = self.np_ize(targets, True)
 
-def gatherdata(self, write_path, read_path):
+def gatherdata(write_path, read_path):
     h = BasicHeroData()
 
     matches_by_id = h.read_json_file(read_path)
@@ -165,8 +165,8 @@ def gatherdata(self, write_path, read_path):
     for mid in match_ids:
         # for mid in match_ids:
         matches.append(h.get("matches/{}".format(mid)))
-        sleep(1.2)  # the opendota api requests that this endpoint only be hit 1/s
-    h.write_json_file('./Data/Matches/10_matches_full.json', matches)
+        sleep(1.1)  # the opendota api requests that this endpoint only be hit 1/s
+    # h.write_json_file('./Data/Matches/45852_matches_full.json', matches)
 
     h.load_data(matches)
 
@@ -177,9 +177,9 @@ def gatherdata(self, write_path, read_path):
 
     assert len(data[0]) == len(features)
     assert len(targets[0]) == len(target_labels)
+
     h.write_json_file(write_path, h.shortened_data)
-        # h.write_json_file('./Data/Matches/5_matches_short.json', h.shortened_data)
 
 if __name__ == "__main__":
     print('Creating Data')
-    # gatherdata('./Data/Matches/10_matches_short.json', './Data/Matches_By_Id/10_matches.json')
+    gatherdata(write_path='./Data/Matches/45852_matches_short.json', read_path='./Data/Matches_By_Id/45852_matches.json')
