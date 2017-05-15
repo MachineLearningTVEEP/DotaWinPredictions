@@ -44,6 +44,10 @@ h.load_data(matches)
 targets = h.targets
 data = h.data
 
+# data[data == 0] = -1
+#
+
+
 # train_data, train_data, train_target, test_target = train_test_split(data, targets, test_size=0.2, random_state=42)
 train_data, test_data, train_target, test_target = train_test_split(data, targets, test_size=0.2, random_state=42)
 

@@ -22,8 +22,14 @@ class DotaData(object):
         Returns the python object that corresponds to the api's json 
         '''
         r = requests.get("{}{}".format(self.base_api, api))
-        assert r.status_code == 200
-        return r.json()
+        # assert r.status_code == 200
+
+        if(r.status_code == 200):
+            return r.status_code, r.json()
+        else:
+            return r.status_code, None
+
+        # return r.json()
 
     def extract_base_features(self, data):
         '''
@@ -165,7 +171,13 @@ def gatherdata(write_path, read_path):
     for mid in match_ids:
         # for mid in match_ids:
         print('Getting: ' + mid)
-        matches.append(h.get("matches/{}".format(mid)))
+
+        status, code = h.get("matches/{}".format(mid))
+
+        if(status == 200):
+            matches.append(code)
+
+        # matches.append(h.get("matches/{}".format(mid)))
         sleep(1.2)  # the opendota api requests that this endpoint only be hit 1/s
     # h.write_json_file('./Data/Matches/45852_matches_full.json', matches)
 
@@ -176,8 +188,8 @@ def gatherdata(write_path, read_path):
     target_labels = h.target_labels
     targets = h.targets
 
-    assert len(data[0]) == len(features)
-    assert len(targets[0]) == len(target_labels)
+    # assert len(data[0]) == len(features)
+    # assert len(targets[0]) == len(target_labels)
 
     h.write_json_file(write_path, h.shortened_data)
 
