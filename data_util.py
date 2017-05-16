@@ -195,4 +195,4 @@ def gatherdata(write_path, read_path):
 
 if __name__ == "__main__":
     print('Creating Data')
-    gatherdata(write_path='./Data/Matches/45852_matches_short.json', read_path='./Data/Matches_By_Id/45852_matches.json')
+    gatherdata(write_path='./Data/Matches/10000_matches_short.json', read_path='./Data/Matches_By_Id/10000_matches.json')
