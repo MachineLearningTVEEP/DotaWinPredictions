@@ -170,7 +170,7 @@ def gatherdata(write_path, read_path):
     match_ids = [datum['match_id'] for datum in matches_by_id]
     for mid in match_ids:
         # for mid in match_ids:
-        print('Getting: ' + mid)
+        print('Getting: ' + str(mid))
 
         status, code = h.get("matches/{}".format(mid))
 
