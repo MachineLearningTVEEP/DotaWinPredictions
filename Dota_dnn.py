@@ -12,6 +12,10 @@ from data_util import BasicHeroData
 from sklearn.metrics import accuracy_score
 from keras.optimizers import SGD
 from keras.layers import Dense, Activation, convolutional, pooling, Flatten, Dropout
+import numpy as np
+
+
+
 
 
 # (X_train,y_train),(X_test,y_test) = mnist.load_data()
@@ -21,6 +25,13 @@ h.load_data(matches)
 
 targets = h.targets
 data = h.data
+
+targets_double = np.copy(targets)
+data_double = np.copy(data)
+
+data = np.concatenate((data, data_double))
+targets = np.concatenate((targets, targets_double))
+
 
 # data[data == 0] = -1
 
@@ -123,7 +134,8 @@ model.compile(
 
 
 # Training
-model.fit(X_train, y_train, batch_size = 128, epochs=25, verbose=2, validation_split=0.40)
+model.fit(X_train, y_train, batch_size = 128, epochs=25, verbose=2, validation_data=(X_test, y_test) )
+
 
 # Testing
 loss, accuracy = model.evaluate(X_test, y_test, verbose=2)

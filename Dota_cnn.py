@@ -21,6 +21,14 @@ h.load_data(matches)
 targets = h.targets
 data = h.data
 
+
+targets_double = np.copy(targets)
+data_double = np.copy(data)
+
+data = np.concatenate((data, data_double))
+targets = np.concatenate((targets, targets_double))
+
+
 train_data, test_data, train_target, test_target = train_test_split(data, targets, test_size=0.2, random_state=42)
 
 # Display size
@@ -106,7 +114,10 @@ model.compile(
 
 # model.fit(train_data, train_targets,epochs=10,batch_size=32,verbose=2)
 # model.fit(test_data, test_target, validation_split=0.25, validation_data=(test_data, test_target), epochs=50, batch_size=64, verbose=2)
-model.fit(X_train, y_train, validation_split=0.25, epochs=15, batch_size=64, verbose=2)
+# model.fit(X_train, y_train, validation_split=0.25, epochs=15, batch_size=64, verbose=2)
+# model.fit(X_train, y_train, validation_split=0.25, epochs=15, batch_size=64, verbose=2)
+model.fit(X_train, y_train, batch_size = 64, epochs=25, verbose=2, validation_data=(X_test, y_test) )
+
 
 
 loss, accuracy = model.evaluate(X_test, y_test, verbose=2)

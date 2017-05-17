@@ -44,12 +44,18 @@ h.load_data(matches)
 targets = h.targets
 data = h.data
 
+targets_double = np.copy(targets)
+data_double = np.copy(data)
+
+data = np.concatenate((data, data_double))
+targets = np.concatenate((targets, targets_double))
+
 # data[data == 0] = -1
 #
 
 
 # train_data, train_data, train_target, test_target = train_test_split(data, targets, test_size=0.2, random_state=42)
-train_data, test_data, train_target, test_target = train_test_split(data, targets, test_size=0.2, random_state=42)
+train_data, test_data, train_target, test_target = train_test_split(data, targets, test_size=0.3, random_state=42)
 
 
 lgr = linear_model.LogisticRegression()
