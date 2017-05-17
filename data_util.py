@@ -21,15 +21,24 @@ class DotaData(object):
         Uses the requests module to get data from the api 
         Returns the python object that corresponds to the api's json 
         '''
-        r = requests.get("{}{}".format(self.base_api, api))
-        # assert r.status_code == 200
 
-        if(r.status_code == 200):
-            return r.status_code, r.json()
-        else:
-            return r.status_code, None
+        # http://stackoverflow.com/questions/16511337/correct-way-to-try-except-using-python-requests-module
+        # http://stackoverflow.com/questions/7160983/catching-all-exceptions-in-python
 
-        # return r.json()
+
+        try:
+            r = requests.get("{}{}".format(self.base_api, api))
+
+            if(r.status_code == 200):
+                return r.status_code, r.json()
+            else:
+                return r.status_code, None
+
+        # handle all exceptions
+        except:
+            print("EXCEPTION")
+            # just return form function
+            return 404, None
 
     def extract_base_features(self, data):
         '''
@@ -172,10 +181,12 @@ def gatherdata(write_path, read_path):
         # for mid in match_ids:
         print('Getting: ' + str(mid))
 
-        status, code = h.get("matches/{}".format(mid))
+        status, json = h.get("matches/{}".format(mid))
 
         if(status == 200):
-            matches.append(code)
+            matches.append(json)
+        else:
+            print('bad status')
 
         # matches.append(h.get("matches/{}".format(mid)))
         sleep(1.2)  # the opendota api requests that this endpoint only be hit 1/s
