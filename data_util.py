@@ -129,7 +129,8 @@ class BasicHeroData(DotaData):
         self.target_labels = ['radiant_win', 'dire_win']
 
     def heroes(self):
-        heroes = self.read_json_file('./Data/heroes.json')['heroes']
+        # heroes = self.read_json_file('./Data/heroes.json')['heroes']
+        heroes = self.read_json_file('./Data/heroesv2.json')['heroes']
         id_name_map = {h['id']: h['name'] for h in heroes}
         ids = id_name_map.keys()
         id_index_map = {x: i for i, x in enumerate(ids)}
@@ -169,6 +170,14 @@ class BasicHeroData(DotaData):
         self.data = self.np_ize(data, True)
         self.targets = self.np_ize(targets, True)
 
+    def load_hero_data(self):
+        r = requests.get("{}".format('https://api.opendota.com/api/heroStats'))
+
+
+        shortened_heroe_data = self.shorten_data(r.json(), { 'id': None, "name": None, "localized_name": None, })
+        self.write_json_file('./Data/heroesV3.json', shortened_heroe_data)
+
+
 def gatherdata(write_path, read_path):
     h = BasicHeroData()
 
@@ -206,4 +215,6 @@ def gatherdata(write_path, read_path):
 
 if __name__ == "__main__":
     print('Creating Data')
-    gatherdata(write_path='./Data/Matches/10000_matches_short.json', read_path='./Data/Matches_By_Id/10000_matches.json')
+    data = BasicHeroData()
+    gatherdata(write_path='./Data/Matches/5000v2_matches_short.json', read_path='./Data/Matches_By_Id/5000_matches.json')
+    # data.load_hero_data()

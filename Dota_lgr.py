@@ -13,6 +13,7 @@ from sklearn.linear_model import LinearRegression
 from data_util import BasicHeroData
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
+from scipy.sparse import bsr_matrix
 
 def p_intercept(intercept):
 	print("The intercept is {}".format(intercept))
@@ -43,12 +44,16 @@ h.load_data(matches)
 
 targets = h.targets
 data = h.data
+#
+# targets_double = np.copy(targets)
+# data_double = np.copy(data)
+#
+# data = np.concatenate((data, data_double))
+# targets = np.concatenate((targets, targets_double))
 
-targets_double = np.copy(targets)
-data_double = np.copy(data)
 
-data = np.concatenate((data, data_double))
-targets = np.concatenate((targets, targets_double))
+# from scipy.sparse import bsr_matrix
+
 
 # data[data == 0] = -1
 #
@@ -63,10 +68,20 @@ lgr = linear_model.LogisticRegression()
 # http://stackoverflow.com/questions/34337093/why-am-i-getting-a-data-conversion-warning
 n = train_target.shape[0]
 y = train_target.reshape((n,))
+# ********************************************************************************************************
+print(train_data.shape)
+print(y.shape)
+
+train_data = bsr_matrix(train_data)
+# y = bsr_matrix(y)
+# y = csr_matrix(y)
+print(train_data.shape)
+print(y.shape)
+
 lgr.fit(train_data, y)
 
-# p_intercept(lgr.intercept_[0])
-# p_coefficients(lgr.coef_)
+# p_intercept(lass.intercept_[0])
+# p_coefficients(lass.coef_)
 
 test_predict_1 = lgr.predict(test_data)
 train_predict_1 = lgr.predict(train_data)
@@ -98,7 +113,7 @@ print("Accuracy (Testing Data (Data / Predicted Target) / sklearn.metrics.accura
 #
 # labels = test_data.reshape(c, )
 
-# scores = cross_val_score(lgr, test_data, test_target, cv=5)
+# scores = cross_val_score(lass, test_data, test_target, cv=5)
 
 # print("Accuracy (Cross validation using k-folds / Test Data) %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 

@@ -22,11 +22,11 @@ targets = h.targets
 data = h.data
 
 
-targets_double = np.copy(targets)
-data_double = np.copy(data)
-
-data = np.concatenate((data, data_double))
-targets = np.concatenate((targets, targets_double))
+# targets_double = np.copy(targets)
+# data_double = np.copy(data)
+#
+# data = np.concatenate((data, data_double))
+# targets = np.concatenate((targets, targets_double))
 
 
 train_data, test_data, train_target, test_target = train_test_split(data, targets, test_size=0.2, random_state=42)

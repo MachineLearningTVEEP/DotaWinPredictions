@@ -47,18 +47,18 @@ target_double = np.copy(train_target)
 data_double = np.copy(train_data)
 
 # reverse the second set of data
-# target_double = target_double[::-1]
-# data_double = data_double[::-1]
-#
-#
-#
-# # make two copies of the data
-# test_target_double = np.copy(test_target)
-# test_data_double = np.copy(test_data)
-#
-# # reverse the second set of data
-# test_target_double = test_target_double[::-1]
-# test_data_double = test_data_double[::-1]
+target_double = target_double[::-1]
+data_double = data_double[::-1]
+
+
+
+# make two copies of the data
+test_target_double = np.copy(test_target)
+test_data_double = np.copy(test_data)
+
+# reverse the second set of data
+test_target_double = test_target_double[::-1]
+test_data_double = test_data_double[::-1]
 
 
 
@@ -68,10 +68,10 @@ print('Normal, y_train size: ', train_target.shape)
 print('Normal, X_test size: ', test_data.shape)
 print('Normal, y_test size: ', test_target.shape)
 print()
-# train_data = np.concatenate((train_data, data_double), 0)
+train_data = np.concatenate((train_data, data_double), 1)
 # train_target = np.concatenate((train_target, target_double), 0)
-#
-# test_data = np.concatenate((test_data, test_data_double), 0)
+
+test_data = np.concatenate((test_data, test_data_double), 1)
 # test_target = np.concatenate((test_target, test_target_double), 0)
 
 
@@ -114,22 +114,12 @@ print()
 # ])
 
 model = Sequential()
-
-
-
-
-
-
-
 # Dense(64) is a fully-connected layer with 64 hidden units.
 # in the first layer, you must specify the expected input data shape:
 # here, 20-dimensional vectors.
-model.add(Dense(4096, activation='relu', input_dim=224))
-# model.add(Dropout(0.8))
+model.add(Dense(4096, activation='relu', input_dim=448))
 model.add(Dense(4096, activation='relu'))
-# model.add(Dropout(0.5))
 # model.add(Dense(4096, activation='relu'))
-# model.add(Dropout(0.25))
 # model.add(Dense(4096, activation='relu'))
 # model.add(Dense(4096, activation='relu'))
 # model.add(Dense(4096, activation='relu'))
@@ -156,7 +146,7 @@ model.add(Dense(4096, activation='relu'))
 # model.add(Dropout(0.5))
 # model.add(Dense(1024, activation='relu'))
 # model.add(Dropout(0.25))
-# model.add(Dropout(0.25))
+model.add(Dropout(0.25))
 
 
 
