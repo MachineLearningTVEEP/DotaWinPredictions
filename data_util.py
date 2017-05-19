@@ -11,6 +11,8 @@ class NumpyException(Exception):
 class SubDictException(Exception):
     pass
 
+def pp(obj):
+    print json.dumps(obj, indent=4)
 
 class DotaData(object):
     def __init__(self):
@@ -40,6 +42,20 @@ class DotaData(object):
             # just return form function
             return 404, None
 
+    def get_schema(self):
+        status, schema = self.get('schema')
+        print schema
+
+        redone = {}
+
+        for s in schema:
+            if s['table_name'] not in redone:
+                redone[s['table_name']] = []
+            if s['column_name'] not in redone[s['table_name']]:
+                redone[s['table_name']].append(s['column_name'])
+
+        self.write_json_file('schema.json', redone)
+
     def extract_base_features(self, data):
         '''
         Extracts keys (features) from a list of dicts 
@@ -48,14 +64,17 @@ class DotaData(object):
         (extra keys are supplied to show how messed up opendota's api is, 
             only features in the base_feature_set should be used)
         '''
-        base_feature_set = set(data[0].keys())
-        extras = set()
-        for d in data:
-            f = set(d.keys())
-            extras = extras.union(base_feature_set.symmetric_difference(f))
-            base_feature_set = base_feature_set.intersection(f)
+        if isinstance(data, list):
+            base_feature_set = set(data[0].keys())
+            extras = set()
+            for d in data:
+                f = set(d.keys())
+                extras = extras.union(base_feature_set.symmetric_difference(f))
+                base_feature_set = base_feature_set.intersection(f)
 
-        return base_feature_set, extras
+            return base_feature_set, extras
+        elif isinstance(data, dict):
+            return data.keys(), set()
 
     def np_ize(self, data, np_only=False):
         '''
@@ -100,7 +119,7 @@ class DotaData(object):
         print('creating json data debug 1')
 
         with open(filepath, 'w') as f:
-            json.dump(data, f, indent=4)
+            json.dump(data, f)
         print('creating json data debug 2')
 
     def shorten_data(self, data, desired_keys):
@@ -118,6 +137,54 @@ class DotaData(object):
                     assert isinstance(d[key], list)
                     d[key] = self.sub_dicts(d[key], value)
         return _data
+
+    def _chunk_match_ids(self):
+        amount = 1000
+
+        matches = dota_data.read_json_file("./Data/Matches_By_Id/40000_plus_matches.json")
+        matches = [match['match_id'] for match in matches]
+        iterations = len(matches) / amount
+        remainder = len(matches) % amount
+
+        base_filepath = "./Data/Matches_By_Id/chunked/"
+
+        r = matches[:remainder]
+        dota_data.write_json_file("{}{}".format(base_filepath, 'remainder.json'), r)
+        for i in range(iterations):
+            match_subset = matches[remainder + (i * amount):remainder + ((i + 1) * amount)]
+            dota_data.write_json_file("{}{}".format(base_filepath, '{}.json'.format(str(i + 1))), match_subset)
+
+    def _chunck_matches(self, filename):
+        dota_data = DotaData()
+
+        match_ids = dota_data.read_json_file("./Data/Matches_By_Id/chunked/{}.json".format(filename))
+        matches = []
+        for mid in match_ids:
+            status, data = dota_data.get("matches/{}".format(mid))
+
+            if(status == 200):
+                print mid
+                matches.append(data)
+            else:
+                print('bad status')
+            sleep(1.1)  # the opendota api requests that this endpoint only be hit 1/s
+        matches = dota_data.shorten_data(matches, {'players': ['isRadiant', 'hero_id'], 'radiant_win': None})
+        dota_data.write_json_file("./Data/Matches/chunked/{}.json".format(filename), matches)
+
+        try:
+            import time
+            from pygame import mixer
+            mixer.init() 
+            alert=mixer.Sound('boom.wav')
+            alert.play()
+            time.sleep(1)
+            alert.play()
+            time.sleep(1)
+            alert.play()
+            time.sleep(1)
+        except ImportError:
+            pass
+
 
 
 class BasicHeroData(DotaData):
@@ -202,7 +269,7 @@ def gatherdata(write_path, read_path):
         print('Getting: ' + str(mid) + ": " + str(t))
         t = t + 1
 
-        status, json = h.get("matches/{}".format(mid))
+        status, json = h.get("matches/{}".format(mid))# DONT DO THIS!!! naming a variable the same as a module will fuck up your code!
 
         if(status == 200):
             print('appending')
@@ -226,8 +293,17 @@ def gatherdata(write_path, read_path):
 
     h.write_json_file(write_path, h.shortened_data)
 
+def tanner_run_this():
+    dota_data = DotaData()
+    for i in range(3, 47):
+        dota_data._chunck_matches(str(i))
+
 if __name__ == "__main__":
-    print('Creating Data')
-    data = BasicHeroData()
-    gatherdata(write_path='./Data/Matches/5000v2_matches_short.json', read_path='./Data/Matches_By_Id/5000_matches.json')
-    # data.load_hero_data()
+
+
+
+
+
+
+
+
