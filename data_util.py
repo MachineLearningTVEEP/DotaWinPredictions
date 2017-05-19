@@ -97,8 +97,11 @@ class DotaData(object):
         '''
         Writes a json file; writes json of python object
         '''
+        print('creating json data debug 1')
+
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=4)
+        print('creating json data debug 2')
 
     def shorten_data(self, data, desired_keys):
         '''
@@ -164,11 +167,16 @@ class BasicHeroData(DotaData):
         return data, targets
 
     def load_data(self, matches):
+        print('loading data debug 1')
         self.shortened_data = self.shorten_data(matches, {'players': ['isRadiant', 'hero_id'], 'radiant_win': None})
+        print('loading data debug 2')
         data, targets = self.process_matches()
         self.raw_data = data
         self.data = self.np_ize(data, True)
+        print('loading data debug 3')
         self.targets = self.np_ize(targets, True)
+        print('loading data debug 4')
+
 
     def load_hero_data(self):
         r = requests.get("{}".format('https://api.opendota.com/api/heroStats'))
@@ -191,12 +199,13 @@ def gatherdata(write_path, read_path):
 
     for mid in match_ids:
         # for mid in match_ids:
-        print('Getting: ' + str(mid) + ": " + t)
+        print('Getting: ' + str(mid) + ": " + str(t))
         t = t + 1
 
         status, json = h.get("matches/{}".format(mid))
 
         if(status == 200):
+            print('appending')
             matches.append(json)
         else:
             print('bad status')
