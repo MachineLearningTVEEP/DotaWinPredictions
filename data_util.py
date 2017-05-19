@@ -186,9 +186,13 @@ def gatherdata(write_path, read_path):
     # features, _data = h.np_ize(matches_by_id)
     matches = []
     match_ids = [datum['match_id'] for datum in matches_by_id]
+
+    t = 0
+
     for mid in match_ids:
         # for mid in match_ids:
-        print('Getting: ' + str(mid))
+        print('Getting: ' + str(mid) + ": " + t)
+        t = t + 1
 
         status, json = h.get("matches/{}".format(mid))
 
