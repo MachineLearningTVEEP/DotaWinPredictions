@@ -20,7 +20,7 @@ import numpy as np
 
 # (X_train,y_train),(X_test,y_test) = mnist.load_data()
 h = BasicHeroData()
-matches = h.read_json_file('./Data/Matches/5000_matches_short.json')
+matches = h.read_json_file('./Data/Matches/40k_matches_short.json')
 h.load_data(matches)
 
 targets = h.targets

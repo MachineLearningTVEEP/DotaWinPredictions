@@ -39,7 +39,7 @@ def p_coefficients(coefficients):
 
 # if __name__ == '__main__':
 h = BasicHeroData()
-matches = h.read_json_file('./Data/Matches/5000_matches_short.json')
+matches = h.read_json_file('./Data/Matches/40k_matches_short.json')
 h.load_data(matches)
 
 targets = h.targets

@@ -273,7 +273,7 @@ def gatherdata(write_path, read_path):
 
         # matches.append(h.get("matches/{}".format(mid)))
         sleep(1.1)  # the opendota api requests that this endpoint only be hit 1/s
-    h.write_json_file('./Data/Matches/500_matches_full.json', matches)
+    # h.write_json_file('./Data/Matches/500_matches_full.json', matches)
 
     h.load_data(matches)
 
@@ -287,6 +287,18 @@ def gatherdata(write_path, read_path):
 
     h.write_json_file(write_path, h.shortened_data)
 
+def gather_chunked_data(write_path, read_path_partial, max, outset = None):
+    h = BasicHeroData()
+    match_arry = []
+    for i in range(1, max):
+        print("Getting: " + read_path_partial +'{}.json'.format(i))
+        match_arry = match_arry + h.read_json_file(read_path_partial +'{}.json'.format(i))
+    # print("Getting: " + (read_path_partial + outset))
+    # match_arry = match_arry + json.loads(h.read_json_file((read_path_partial + outset)))
+    h.load_data(match_arry)
+    h.write_json_file(write_path, h.shortened_data)
+
+
 def tanner_run_this():
     dota_data = DotaData()
     for i in range(3, 47):
@@ -295,5 +307,6 @@ def tanner_run_this():
 if __name__ == "__main__":
     print('Creating Data')
     data = BasicHeroData()
-    gatherdata(write_path='./Data/Matches/5000v2_matches_short.json', read_path='./Data/Matches_By_Id/5000_matches.json')
-    # data.load_hero_data()
+    # gatherdata(write_path='./Data/Matches/5000v2_matches_short.json', read_path='./Data/Matches_By_Id/5000_matches.json')
+    # gather_chunked_data('./Data/Matches/40k_matches_short.json', './Data/Matches/chunked/', 46, 'remainder.json')
+    gather_chunked_data('./Data/Matches/40k_matches_short.json', './Data/Matches/chunked/', 46, 'remainder.json')
