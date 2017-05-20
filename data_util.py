@@ -81,6 +81,7 @@ class DotaData(object):
         Returns a list of dictionaries comprised of the desired_keys
         '''
         base_feature_set, extras = self.extract_base_features(data)
+
         if all(k in base_feature_set for k in desired_keys):
             return [{k: d[k] for k in desired_keys} for d in data]
         raise SubDictException("Unable to extract sub dict. Not all keys exist in every member of the data set.")
@@ -97,11 +98,9 @@ class DotaData(object):
         '''
         Writes a json file; writes json of python object
         '''
-        print('creating json data debug 1')
 
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=4)
-        print('creating json data debug 2')
 
     def shorten_data(self, data, desired_keys):
         '''
@@ -109,7 +108,9 @@ class DotaData(object):
         Returns a list of dicts with the structure of desired_keys (2 levels only)
         '''
         assert isinstance(desired_keys, dict)
+
         _data = self.sub_dicts(data, desired_keys.keys())
+
         for d in _data:
             # for key, value in desired_keys.iteritems():
             for key, value in desired_keys.items():
@@ -117,6 +118,7 @@ class DotaData(object):
                     assert isinstance(value, list)
                     assert isinstance(d[key], list)
                     d[key] = self.sub_dicts(d[key], value)
+
         return _data
 
 
@@ -133,7 +135,7 @@ class BasicHeroData(DotaData):
 
     def heroes(self):
         # heroes = self.read_json_file('./Data/heroes.json')['heroes']
-        heroes = self.read_json_file('./Data/heroesv2.json')['heroes']
+        heroes = self.read_json_file('./Data/heroesV3.json')['heroes']
         id_name_map = {h['id']: h['name'] for h in heroes}
         ids = id_name_map.keys()
         id_index_map = {x: i for i, x in enumerate(ids)}
@@ -167,21 +169,14 @@ class BasicHeroData(DotaData):
         return data, targets
 
     def load_data(self, matches):
-        print('loading data debug 1')
         self.shortened_data = self.shorten_data(matches, {'players': ['isRadiant', 'hero_id'], 'radiant_win': None})
-        print('loading data debug 2')
         data, targets = self.process_matches()
         self.raw_data = data
         self.data = self.np_ize(data, True)
-        print('loading data debug 3')
         self.targets = self.np_ize(targets, True)
-        print('loading data debug 4')
-
 
     def load_hero_data(self):
         r = requests.get("{}".format('https://api.opendota.com/api/heroStats'))
-
-
         shortened_heroe_data = self.shorten_data(r.json(), { 'id': None, "name": None, "localized_name": None, })
         self.write_json_file('./Data/heroesV3.json', shortened_heroe_data)
 
@@ -212,7 +207,10 @@ def gatherdata(write_path, read_path):
 
         # matches.append(h.get("matches/{}".format(mid)))
         sleep(1.1)  # the opendota api requests that this endpoint only be hit 1/s
-    # h.write_json_file('./Data/Matches/45852_matches_full.json', matches)
+    h.write_json_file('./Data/Matches/500_matches_full.json', matches)
+
+    print("size :" + str(len(matches)))
+
 
     h.load_data(matches)
 
@@ -229,5 +227,5 @@ def gatherdata(write_path, read_path):
 if __name__ == "__main__":
     print('Creating Data')
     data = BasicHeroData()
-    gatherdata(write_path='./Data/Matches/5000v2_matches_short.json', read_path='./Data/Matches_By_Id/5000_matches.json')
+    # gatherdata(write_path='./Data/Matches/500_matches_short.json', read_path='./Data/Matches_By_Id/500_matches.json')
     # data.load_hero_data()

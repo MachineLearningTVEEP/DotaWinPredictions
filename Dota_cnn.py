@@ -16,10 +16,12 @@ import matplotlib
 
 h = BasicHeroData()
 matches = h.read_json_file('./Data/Matches/5000_matches_short.json')
+print('size 10: ' + str(len(matches)))
 h.load_data(matches)
 
 targets = h.targets
 data = h.data
+print('size 11: ' + str(len(data)))
 
 
 # targets_double = np.copy(targets)
