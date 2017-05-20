@@ -78,20 +78,23 @@ print()
 
 
 # Display size
-print('Doubling X_train size: ', train_data.shape)
-print('Doubling y_train size: ', train_target.shape)
-print('Doubling X_test size: ', test_data.shape)
-print('Doubling y_test size: ', test_target.shape)
-print()
+# print('Doubling X_train size: ', train_data.shape)
+# print('Doubling y_train size: ', train_target.shape)
+# print('Doubling X_test size: ', test_data.shape)
+# print('Doubling y_test size: ', test_target.shape)
+# print()
 
 
 # Pre-processing
-# X_train = train_data.reshape(train_data.shape[0],-1)/255
 X_train = train_data.reshape(train_data.shape[0],-1)
-# X_test = test_data.reshape(test_data.shape[0],-1)/255
 X_test = test_data.reshape(test_data.shape[0],-1)
-y_train = np_utils.to_categorical(train_target,2)
-y_test = np_utils.to_categorical(test_target,2)
+y_train = np_utils.to_categorical(train_target, 2)
+y_test = np_utils.to_categorical(test_target, 2)
+val_data = val_data.reshape(val_data.shape[0],-1)
+val_target = np_utils.to_categorical(val_target, 2)
+
+
+
 print('After pre-processing, X_train size: ', X_train.shape)
 print('After pre-processing, y_train size: ', y_train.shape)
 print('After pre-processing, X_test size: ', X_test.shape)
@@ -124,11 +127,12 @@ model = Sequential()
 # Dense(64) is a fully-connected layer with 64 hidden units.
 # in the first layer, you must specify the expected input data shape:
 # here, 20-dimensional vectors.
-model.add(Dense(4096, activation='relu', input_dim=224))
+# model.add(Dense(4096, activation='relu', input_dim=224))
+model.add(Dense(4096, activation='relu', input_dim=train_data.shape[1]))
 # model.add(Dropout(0.8))
 model.add(Dense(4096, activation='relu'))
 # model.add(Dropout(0.5))
-# model.add(Dense(4096, activation='relu'))
+model.add(Dense(4096, activation='relu'))
 # model.add(Dropout(0.25))
 # model.add(Dense(4096, activation='relu'))
 # model.add(Dense(4096, activation='relu'))
@@ -164,7 +168,7 @@ model.add(Dense(4096, activation='relu'))
 model.add(Dense(2, activation='softmax'))
 # model.add(Dense(2, activation='sigmoid'))
 
-adam = Adam(lr=0.005, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 
 model.compile(
     optimizer = adam,
@@ -193,18 +197,22 @@ model.compile(
 
 
 # Training
-model.fit(X_train, y_train, batch_size = 128, epochs=25, verbose=2, validation_data=(X_test, y_test) )
+model.fit(X_train, y_train, batch_size = 128, epochs=25, verbose=2, validation_data=(val_data, val_target) )
 
 
-# Testing
 loss, accuracy = model.evaluate(X_test, y_test, verbose=2)
 
 
-train_predict = model.predict(X_train, batch_size = 64, verbose=2)
-test_predict = model.predict(X_test, batch_size = 64, verbose=2)
+# train_predict = model.predict(X_train, batch_size = 64, verbose=2)
+# test_predict = model.predict(X_test, batch_size = 64, verbose=2)
 
 print('The loss on testing data', loss)
 print('The accuracy on testing data', accuracy)
+
+loss, accuracy = model.evaluate(val_data, val_target, verbose=2)
+
+print('The loss on validation data', loss)
+print('The accuracy on validaiton data', accuracy)
 
 print()
 # print("Accuracy (Training Data (Data / Predicted Target) / sklearn.metrics.accuracy_score): " + str(accuracy_score(train_target, train_predict)))
