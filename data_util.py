@@ -198,7 +198,7 @@ class BasicHeroData(DotaData):
     def __init__(self):
         super(BasicHeroData, self).__init__()
         self.hero_features, self.hero_id_index_map = self.heroes()
-        self.target_labels = ['radiant_win', 'dire_win']
+        self.target_labels = ['radiant_win']
 
     def heroes(self):
         # heroes = self.read_json_file('./Data/heroes.json')['heroes']
@@ -239,6 +239,7 @@ class BasicHeroData(DotaData):
         self.shortened_data = self.shorten_data(matches, {'players': ['isRadiant', 'hero_id'], 'radiant_win': None})
         data, targets = self.process_matches()
         self.raw_data = data
+        self.raw_targets = targets
         self.data = self.np_ize(data, True)
         self.targets = self.np_ize(targets, True)
 
@@ -299,24 +300,47 @@ def gather_chunked_data(write_path, read_path_partial, max, outset = None):
     h.load_data(match_arry)
     h.write_json_file(write_path, h.shortened_data)
 
+def _save_hero_data():
+    hero_data = BasicHeroData()
+    matches = hero_data.read_json_file('./Data/Matches/40k_matches_short.json')
+    hero_data.load_data(matches)
+    data = {
+        'raw_data': hero_data.raw_data,
+        'raw_targets': hero_data.raw_targets,
+        'features': hero_data.hero_features,
+        'target_labels': hero_data.target_labels
+    }
+    hero_data.write_json_file('./Data/hero_data/full_40000_plus_data.json', data)
 
-def tanner_run_this():
-    dota_data = DotaData()
-    for i in range(3, 47):
-        dota_data._chunck_matches(str(i))
 
-def assess_hero_data():
-    h = BasicHeroData()
-    # load in file
-    matches = h.read_json_file('./Data/Matches/40k_matches_short.json')
-    # load and parse matches
-    h.load_data(matches)
-    # get parsed data
-    data = h.data
-    target = h.targets
+
+def plot_summed(summed_features):
+    _sorted = np.sort(summed_features, axis=-1, kind='mergesort', order=None)
+    y_pos = np.arange(len(_sorted))
+
+    plt.figure(figsize=(20, 3))  # width:20, height:3
+    # plt.bar(range(len(my_dict)), my_dict.values(), align='edge', width=0.3)
+
+    plt.bar(range(len(summed_features)), summed_features,  align='center', alpha=0.5, width=0.3)
+
+    plt.xticks(range(0, len(summed_features), 10))
+
+    plt.ylabel('Usage')
+    plt.title('Dota 2 hero usages in 40k matches')
+
+    plt.show()
+
+def load_saved_hero_data(filepath):
+    hero_data = BasicHeroData().read_json_file(filepath)
+    hero_data['data'] = np.array(hero_data['raw_data'])
+    hero_data['targets'] = np.array(hero_data['raw_targets'])
+    del hero_data['raw_targets']
+    del hero_data['raw_data']
+    return hero_data['data'], hero_data['targets'], hero_data['features'], hero_data['target_labels']
+
+def assess_hero_data(data):
     # print formatting settings
     np.set_printoptions(threshold=np.nan, linewidth=453)
-    # print(target.shape)
     # http://stackoverflow.com/questions/16468717/iterating-over-numpy-matrix-rows-to-apply-a-function-each
     def sum(x):
         return np.sum(x)
@@ -330,70 +354,75 @@ def assess_hero_data():
 
     # get sum of each column (find out how much each hero is used)
     feature_details = np.apply_along_axis(sum, axis=0, arr=data)
-    # print(feature_details)
 
-
-    # 0-112 (team 1), 113-226 (team 2)
-    # print(feature_details)
-    # print
-    # print(feature_details[:113])
-    # print
-    # print(feature_details[:113].shape)
-    # print
-    # print(feature_details[113:])
-    # print
-    # print(feature_details[113:].shape)
-    # print
-    # difference_features = np.apply_along_axis(add, axis=0, arr=feature_details)
-    # print difference_features
-
-    # print
     summed_features = np.apply_along_axis(add, axis=0, arr=feature_details)
-    print summed_features
-    print summed_features[19]
-    print summed_features[18]
-    # print
-    sorted = np.sort(summed_features, axis=-1, kind='mergesort', order=None)
-    # print sorted
+
+    percentages = np.divide(summed_features.astype('float32'), sum(summed_features))
+
+    '''for i, x in enumerate(percentages):
+                    if x < .002:
+                        print i'''
+
+    return feature_details, summed_features, percentages
 
 
+def drop_features(data, targets, features, percentages, threshold):
+
+    column_drop_indexes = []
+    for i, x in enumerate(percentages):
+        if x < threshold:
+            column_drop_indexes.append(i)
+            column_drop_indexes.append(i + len(features) / 2)
+
+    print column_drop_indexes
+
+    row_drop_indexes = []
+    for index, d in enumerate(data):
+        if any([d[i] == 1 for i in column_drop_indexes]):
+            row_drop_indexes.append(index)
+
+    data = np.delete(data, row_drop_indexes, 0)
+    targets = np.delete(targets, row_drop_indexes, 0)
+    features = np.delete(features, column_drop_indexes)
+
+    return data, targets, features
+
+def _write_json_file(filepath, data):
+    with open(filepath, 'w') as f:
+        json.dump(data, f)
+
+def _save_data_dropped_features(threshold, name):
+
+    data, targets, features, target_labels = load_saved_hero_data('./Data/hero_data/full_40000_plus_data.json')
+    print len(data)
+
+    feature_details, summed_features, percentages = assess_hero_data(data)
+    #plot_summed(summed_features)
+    data, targets, features = drop_features(data, targets, features, percentages, threshold)
+    print len(data)
+    d = {
+        'data': data.tolist(),
+        'targets': targets.tolist(),
+        'features': features.tolist(),
+        'target_labels': target_labels
+    }
+    _write_json_file('./Data/hero_data/{}'.format(name), d)
 
 
-
-
-
-    y_pos = np.arange(len(sorted))
-
-    # performance = np.arange(0, sorted.shape[0], 5)
-    #
-    # print(y_pos)
-    # print(summed_features)
-    # print len(performance)
-    # print
-    # print sorted.shape
-
-
-
-    plt.figure(figsize=(20, 3))  # width:20, height:3
-    # plt.bar(range(len(my_dict)), my_dict.values(), align='edge', width=0.3)
-
-    plt.bar(range(len(summed_features)), summed_features,  align='center', alpha=0.5, width=0.3)
-
-    # plt.xticks(range(len(summed_features)), range(len(summed_features)))
-    plt.xticks(range(len(summed_features)))
-
-    plt.ylabel('Usage')
-    plt.title('Dota 2 hero usages in 40k matches')
-
-    plt.show()
 
 
 
 if __name__ == "__main__":
-    print('Please wait')
-    data = BasicHeroData()
-    # gatherdata(write_path='./Data/Matches/5000v2_matches_short.json', read_path='./Data/Matches_By_Id/5000_matches.json')
-    # gather_chunked_data('./Data/Matches/40k_matches_short.json', './Data/Matches/chunked/', 46, 'remainder.json')
-    # gather_chunked_data('./Data/Matches/40k_matches_short.json', './Data/Matches/chunked/', 46, 'remainder.json')
-    # gather_chunked_data('./Data/Matches/40k_matches_short.json', './Data/Matches/chunked/', 46, 'remainder.json')
-    assess_hero_data()
+
+    _save_data_dropped_features(.004, 'threshold_004.json')
+
+
+
+
+
+
+
+
+
+
+
