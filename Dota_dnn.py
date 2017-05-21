@@ -39,7 +39,7 @@ data = h.data
 
 
 # split up two groups, one beting the data, the other whil split up furture to a valdiation set and test set, no overlapping data
-train_data, data_set_2, train_target, target_set_2 = train_test_split(data, targets, test_size=0.4, random_state=42)
+train_data, data_set_2, train_target, target_set_2 = train_test_split(data, targets, test_size=0.25, random_state=42)
 test_data, val_data, test_target, val_target = train_test_split(data_set_2, target_set_2, test_size=0.15, random_state=24)
 
 # make two copies of the data
@@ -128,11 +128,29 @@ model = Sequential()
 # in the first layer, you must specify the expected input data shape:
 # here, 20-dimensional vectors.
 # model.add(Dense(4096, activation='relu', input_dim=224))
-model.add(Dense(4096, activation='relu', input_dim=train_data.shape[1]))
-# model.add(Dropout(0.8))
-model.add(Dense(4096, activation='relu'))
+model.add(Dense(256, activation='relu', input_dim=train_data.shape[1]))
+model.add(Dropout(0.5))
+model.add(Dense(256, activation='relu'))
+model.add(Dropout(0.5))
+
+
+
+model.add(Dense(512, activation='relu'))
+model.add(Dropout(0.5))
+
+model.add(Dense(512, activation='relu'))
+model.add(Dropout(0.5))
+
+
+model.add(Dense(1024, activation='relu'))
+model.add(Dropout(0.5))
+
+model.add(Dense(1024, activation='relu'))
+model.add(Dropout(0.5))
+
+
 # model.add(Dropout(0.5))
-model.add(Dense(4096, activation='relu'))
+# model.add(Dense(4096, activation='relu'))
 # model.add(Dropout(0.25))
 # model.add(Dense(4096, activation='relu'))
 # model.add(Dense(4096, activation='relu'))
@@ -166,9 +184,8 @@ model.add(Dense(4096, activation='relu'))
 
 
 model.add(Dense(2, activation='softmax'))
-# model.add(Dense(2, activation='sigmoid'))
 
-adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+adam = Adam(lr=0.00005, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 
 model.compile(
     optimizer = adam,
@@ -197,7 +214,7 @@ model.compile(
 
 
 # Training
-model.fit(X_train, y_train, batch_size = 128, epochs=25, verbose=2, validation_data=(val_data, val_target) )
+model.fit(X_train, y_train, batch_size = 64, epochs=25, verbose=2, validation_data=(val_data, val_target) )
 
 
 loss, accuracy = model.evaluate(X_test, y_test, verbose=2)

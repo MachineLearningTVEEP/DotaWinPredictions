@@ -2,6 +2,7 @@ import requests
 import numpy as np
 from time import sleep
 import json
+import matplotlib.pyplot as plt
 
 
 class NumpyException(Exception):
@@ -304,9 +305,95 @@ def tanner_run_this():
     for i in range(3, 47):
         dota_data._chunck_matches(str(i))
 
+def assess_hero_data():
+    h = BasicHeroData()
+    # load in file
+    matches = h.read_json_file('./Data/Matches/40k_matches_short.json')
+    # load and parse matches
+    h.load_data(matches)
+    # get parsed data
+    data = h.data
+    target = h.targets
+    # print formatting settings
+    np.set_printoptions(threshold=np.nan, linewidth=453)
+    # print(target.shape)
+    # http://stackoverflow.com/questions/16468717/iterating-over-numpy-matrix-rows-to-apply-a-function-each
+    def sum(x):
+        return np.sum(x)
+    # find difference between the team 1 and team 2s usage of the player
+    def sub(x):
+        return abs(x[:113] - x[113:])
+    # total number of times (between both teams) a hero is used
+    def add(x):
+        return np.add(x[:113], x[113:])
+
+
+    # get sum of each column (find out how much each hero is used)
+    feature_details = np.apply_along_axis(sum, axis=0, arr=data)
+    # print(feature_details)
+
+
+    # 0-112 (team 1), 113-226 (team 2)
+    # print(feature_details)
+    # print
+    # print(feature_details[:113])
+    # print
+    # print(feature_details[:113].shape)
+    # print
+    # print(feature_details[113:])
+    # print
+    # print(feature_details[113:].shape)
+    # print
+    # difference_features = np.apply_along_axis(add, axis=0, arr=feature_details)
+    # print difference_features
+
+    # print
+    summed_features = np.apply_along_axis(add, axis=0, arr=feature_details)
+    print summed_features
+    print summed_features[19]
+    print summed_features[18]
+    # print
+    sorted = np.sort(summed_features, axis=-1, kind='mergesort', order=None)
+    # print sorted
+
+
+
+
+
+
+
+    y_pos = np.arange(len(sorted))
+
+    # performance = np.arange(0, sorted.shape[0], 5)
+    #
+    # print(y_pos)
+    # print(summed_features)
+    # print len(performance)
+    # print
+    # print sorted.shape
+
+
+
+    plt.figure(figsize=(20, 3))  # width:20, height:3
+    # plt.bar(range(len(my_dict)), my_dict.values(), align='edge', width=0.3)
+
+    plt.bar(range(len(summed_features)), summed_features,  align='center', alpha=0.5, width=0.3)
+
+    # plt.xticks(range(len(summed_features)), range(len(summed_features)))
+    plt.xticks(range(len(summed_features)))
+
+    plt.ylabel('Usage')
+    plt.title('Dota 2 hero usages in 40k matches')
+
+    plt.show()
+
+
+
 if __name__ == "__main__":
-    print('Creating Data')
+    print('Please wait')
     data = BasicHeroData()
     # gatherdata(write_path='./Data/Matches/5000v2_matches_short.json', read_path='./Data/Matches_By_Id/5000_matches.json')
     # gather_chunked_data('./Data/Matches/40k_matches_short.json', './Data/Matches/chunked/', 46, 'remainder.json')
-    gather_chunked_data('./Data/Matches/40k_matches_short.json', './Data/Matches/chunked/', 46, 'remainder.json')
+    # gather_chunked_data('./Data/Matches/40k_matches_short.json', './Data/Matches/chunked/', 46, 'remainder.json')
+    # gather_chunked_data('./Data/Matches/40k_matches_short.json', './Data/Matches/chunked/', 46, 'remainder.json')
+    assess_hero_data()
