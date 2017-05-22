@@ -24,11 +24,6 @@ class DotaData(object):
         Uses the requests module to get data from the api 
         Returns the python object that corresponds to the api's json 
         '''
-
-        # http://stackoverflow.com/questions/16511337/correct-way-to-try-except-using-python-requests-module
-        # http://stackoverflow.com/questions/7160983/catching-all-exceptions-in-python
-
-
         try:
             r = requests.get("{}{}".format(self.base_api, api))
 
@@ -36,16 +31,18 @@ class DotaData(object):
                 return r.status_code, r.json()
             else:
                 return r.status_code, None
-
         # handle all exceptions
         except:
-            print("EXCEPTION")
-            # just return form function
+            # return 404 
             return 404, None
 
     def get_schema(self):
+        '''
+        The dota api has a schema endpoint. This method parses the json returned from that into a 
+            dict with table names as keys and their columns as list values because the format on 
+            the endpoint is incomprehensible. 
+        '''
         status, schema = self.get('schema')
-        print(schema)
 
         redone = {}
 
@@ -140,59 +137,16 @@ class DotaData(object):
 
         return _data
 
-    def _chunk_match_ids(self):
-        amount = 1000
-
-        matches = dota_data.read_json_file("./Data/Matches_By_Id/40000_plus_matches.json")
-        matches = [match['match_id'] for match in matches]
-        iterations = len(matches) / amount
-        remainder = len(matches) % amount
-
-        base_filepath = "./Data/Matches_By_Id/chunked/"
-
-        r = matches[:remainder]
-        dota_data.write_json_file("{}{}".format(base_filepath, 'remainder.json'), r)
-        for i in range(iterations):
-            match_subset = matches[remainder + (i * amount):remainder + ((i + 1) * amount)]
-            dota_data.write_json_file("{}{}".format(base_filepath, '{}.json'.format(str(i + 1))), match_subset)
-
-    def _chunck_matches(self, filename):
-        dota_data = DotaData()
-
-        match_ids = dota_data.read_json_file("./Data/Matches_By_Id/chunked/{}.json".format(filename))
-        matches = []
-        for mid in match_ids:
-            status, data = dota_data.get("matches/{}".format(mid))
-
-            if(status == 200):
-                print(str(mid))
-                matches.append(data)
-            else:
-                print('bad status')
-            sleep(1.1)  # the opendota api requests that this endpoint only be hit 1/s
-        matches = dota_data.shorten_data(matches, {'players': ['isRadiant', 'hero_id'], 'radiant_win': None})
-        dota_data.write_json_file("./Data/Matches/chunked/{}.json".format(filename), matches)
-
-        try:
-            import time
-            from pygame import mixer
-            mixer.init()
-            alert=mixer.Sound('boom.wav')
-            alert.play()
-            time.sleep(1)
-            alert.play()
-            time.sleep(1)
-            alert.play()
-            time.sleep(1)
-        except ImportError:
-            pass
-
-
 
 class BasicHeroData(DotaData):
     '''
     Basic Usage: Get dota data however you can, be it loaded from a file or directly from the api
         then call load_data on it
+
+    load_data takes in a list of dicts in the format supplied by matches/ endpoint, shortens the data if it
+        is not already shortened, and transforms it into a numpy friendly format
+
+    load_saved_hero_data loads an already numpy friendly format
     '''
 
     def __init__(self):
@@ -201,8 +155,12 @@ class BasicHeroData(DotaData):
         self.target_labels = ['radiant_win']
 
     def heroes(self):
-        # heroes = self.read_json_file('./Data/heroes.json')['heroes']
-        heroes = self.read_json_file('./Data/heroesV3.json')['heroes']
+        '''
+        gets hero data from the heroes file (which in turn comes from the heroStats/ endpoint)
+        maps the supplied ids to indexes because there are some heroes missing (we don't know why)
+        returns the id_index_map and a doubled list of hero features, for both radiant and dire teams
+        '''
+        heroes = self.read_json_file('./Data/heroes.json')
         id_name_map = {h['id']: h['name'] for h in heroes}
         ids = id_name_map.keys()
         id_index_map = {x: i for i, x in enumerate(ids)}
@@ -213,6 +171,12 @@ class BasicHeroData(DotaData):
         return hero_features, id_index_map
 
     def process_matches(self):
+        '''
+        Uses hero_id_index_map to create a list for each match that has ones
+            for a hero pick and zeroes for all other heroes 
+        For both radiant and dire teams in the match 
+        Returns an array of such matches and the outcome of each match in data, targets
+        '''
         targets = []
         data = []
         for match in self.shortened_data:
@@ -230,12 +194,15 @@ class BasicHeroData(DotaData):
                     break
             if any([x != 0 for x in datum]):
                 data.append(datum)
-                # targets.append([int(match['radiant_win']), int(not match['radiant_win'])])
-                # targets.append([int(match['radiant_win'])])
                 targets.append([int(match['radiant_win'])])
         return data, targets
 
     def load_data(self, matches):
+        '''
+        Accepts input data in the format of the matches/ endpoint, 
+            shortens data, processes it and sets the raw_data, raw_targets,
+            data, targets class variables
+        '''
         self.shortened_data = self.shorten_data(matches, {'players': ['isRadiant', 'hero_id'], 'radiant_win': None})
         data, targets = self.process_matches()
         self.raw_data = data
@@ -243,180 +210,189 @@ class BasicHeroData(DotaData):
         self.data = self.np_ize(data, True)
         self.targets = self.np_ize(targets, True)
 
-    def load_hero_data(self):
-        r = requests.get("{}".format('https://api.opendota.com/api/heroStats'))
-        shortened_heroe_data = self.shorten_data(r.json(), { 'id': None, "name": None, "localized_name": None, })
-        self.write_json_file('./Data/heroesV3.json', shortened_heroe_data)
+    def _load_heroes(self):
+        '''
+        Calls the heroStats/ endpoint and returns a shortened list
+        '''
+        status, heroes = self.get('heroStats')
+        shortened_heroe_data = self.shorten_data(heroes, { 'id': None, "name": None, "localized_name": None,})
+        self.write_json_file('./Data/heroes.json', shortened_heroe_data)
+
+    def _chunk_match_ids(self):
+        '''
+        Seperates match ids into distinct files so that they can be processed 
+        We were having issues with the dota matches/ endpoint and large, repetitive queries
+            because at one call per second, 48,000+ queries was way too much 
+        '''
+        amount = 1000
+
+        matches = self.read_json_file("./Data/Matches_By_Id/40000_plus_matches.json")
+        matches = [match['match_id'] for match in matches]
+        iterations = len(matches) / amount
+        remainder = len(matches) % amount
+
+        base_filepath = "./Data/Matches_By_Id/chunked/"
+
+        r = matches[:remainder]
+        dota_data.write_json_file("{}{}".format(base_filepath, 'remainder.json'), r)
+        for i in range(iterations):
+            match_subset = matches[remainder + (i * amount):remainder + ((i + 1) * amount)]
+            dota_data.write_json_file("{}{}".format(base_filepath, '{}.json'.format(str(i + 1))), match_subset)
+
+    def _chunk_matches(self, filename):
+        '''
+        With above, gets a match id file from Data/Matches_By_Id/chunked, calls the match endpoint on those ids, 
+            saves the shortened results into the corresponding chunked file in Data/Matches/chunked
+        This takes a while, so some explosions let you know when it is done ;) (if you have pygame installed)
+        Inputs: string filename (example: '1') 
+        '''
+
+        match_ids = self.read_json_file("./Data/Matches_By_Id/chunked/{}.json".format(filename))
+        matches = []
+        for mid in match_ids:
+            status, data = dota_data.get("matches/{}".format(mid))
+
+            if(status == 200):
+                matches.append(data)
+
+            sleep(1.1)  # the opendota api requests that this endpoint only be hit 1/s
+        matches = self.shorten_data(matches, {'players': ['isRadiant', 'hero_id'], 'radiant_win': None})
+        dota_data.write_json_file("./Data/Matches/chunked/{}.json".format(filename), matches)
+
+        try:
+            import time
+            from pygame import mixer
+            mixer.init()
+            alert=mixer.Sound('boom.wav')
+            alert.play()
+            time.sleep(1)
+            alert.play()
+            time.sleep(1)
+            alert.play()
+            time.sleep(1)
+        except ImportError:
+            pass
+
+    def _gather_chunked_data(self, r_max, outfile='40k_matches_short.json'):
+        '''
+        Saves all the individual chunks in one file
+        '''
+        matches = []
+        for i in range(1, r_max):
+            matches += self.read_json_file('./Data/Matches/chunked/{}.json'.format(i))
+        matches += self.read_json_file('./Data/Matches/chunked/remainder.json')
+
+        self.write_json_file('./Data/Matches/{}'.format(outfile), matches)
+
+    def _save_hero_data(self):
+        '''
+        saves data in np friendly format to be loaded into ML methods
+        initial - 40k plus
+        '''
+        matches = self.read_json_file('./Data/Matches/40k_matches_short.json')
+        self.load_data(matches)
+        data = {
+            'raw_data': self.raw_data,
+            'raw_targets': self.raw_targets,
+            'features': self.hero_features,
+            'target_labels': self.target_labels
+        }
+        self.write_json_file('./Data/hero_data/full_40000_plus_data.json', data)
 
 
-def gatherdata(write_path, read_path):
-    h = BasicHeroData()
+    def load_saved_hero_data(self, filepath):
+        '''
+        loads np friendly version of the data for use in ML methods
+        '''
+        hero_data = self.read_json_file(filepath)
+        hero_data['data'] = np.array(hero_data['raw_data'])
+        hero_data['targets'] = np.array(hero_data['raw_targets'])
+        del hero_data['raw_targets']
+        del hero_data['raw_data']
+        return hero_data['data'], hero_data['targets'], hero_data['features'], hero_data['target_labels']
 
-    matches_by_id = h.read_json_file(read_path)
-    # matches_by_id = h.read_json_file('./Data/Matches_By_Id/10_matches.json')
-    # features, _data = h.np_ize(matches_by_id)
-    matches = []
-    match_ids = [datum['match_id'] for datum in matches_by_id]
+    def _assess_hero_data(self, data):
+        '''
+        Counts the number of times a hero is used over the dataset
+        Calculates the percentages of each hero's use for use in _drop_features
+        '''
+        def sum(x):
+            return np.sum(x)
+        # find difference between the team 1 and team 2s usage of the player
+        def sub(x):
+            return abs(x[:113] - x[113:])
+        # total number of times (between both teams) a hero is used
+        def add(x):
+            return np.add(x[:113], x[113:])
 
-    t = 0
+        # get sum of each column (find out how much each hero is used)
+        self.feature_details = np.apply_along_axis(sum, axis=0, arr=data)
 
-    for mid in match_ids:
-        # for mid in match_ids:
-        print('Getting: ' + str(mid) + ": " + str(t))
-        t = t + 1
+        self.summed_features = np.apply_along_axis(add, axis=0, arr=self.feature_details)
 
-        status, chunk = h.get("matches/{}".format(mid))
-
-        if(status == 200):
-            print('appending')
-            matches.append(chunk)
-        else:
-            print('bad status')
-
-        # matches.append(h.get("matches/{}".format(mid)))
-        sleep(1.1)  # the opendota api requests that this endpoint only be hit 1/s
-    # h.write_json_file('./Data/Matches/500_matches_full.json', matches)
-
-    h.load_data(matches)
-
-    features = h.hero_features
-    data = h.data
-    target_labels = h.target_labels
-    targets = h.targets
-
-    # assert len(data[0]) == len(features)
-    # assert len(targets[0]) == len(target_labels)
-
-    h.write_json_file(write_path, h.shortened_data)
-
-def gather_chunked_data(write_path, read_path_partial, max, outset = None):
-    h = BasicHeroData()
-    match_arry = []
-    for i in range(1, max):
-        print("Getting: " + read_path_partial +'{}.json'.format(i))
-        match_arry = match_arry + h.read_json_file(read_path_partial +'{}.json'.format(i))
-    # print("Getting: " + (read_path_partial + outset))
-    # match_arry = match_arry + json.loads(h.read_json_file((read_path_partial + outset)))
-    h.load_data(match_arry)
-    h.write_json_file(write_path, h.shortened_data)
-
-def _save_hero_data():
-    hero_data = BasicHeroData()
-    matches = hero_data.read_json_file('./Data/Matches/40k_matches_short.json')
-    hero_data.load_data(matches)
-    data = {
-        'raw_data': hero_data.raw_data,
-        'raw_targets': hero_data.raw_targets,
-        'features': hero_data.hero_features,
-        'target_labels': hero_data.target_labels
-    }
-    hero_data.write_json_file('./Data/hero_data/full_40000_plus_data.json', data)
+        self.percentages = np.divide(self.summed_features.astype('float32'), sum(self.summed_features))
 
 
+    def _plot_summed(self):
+        '''
+        Plots the summed features from _assess_hero_data
+        '''
+        _sorted = np.sort(self.summed_features, axis=-1, kind='mergesort', order=None)
+        y_pos = np.arange(len(_sorted))
 
-def plot_summed(summed_features):
-    _sorted = np.sort(summed_features, axis=-1, kind='mergesort', order=None)
-    y_pos = np.arange(len(_sorted))
+        plt.figure(figsize=(20, 3))  # width:20, height:3
 
-    plt.figure(figsize=(20, 3))  # width:20, height:3
-    # plt.bar(range(len(my_dict)), my_dict.values(), align='edge', width=0.3)
+        plt.bar(range(len(self.summed_features)), self.summed_features,  align='center', alpha=0.5, width=0.3)
 
-    plt.bar(range(len(summed_features)), summed_features,  align='center', alpha=0.5, width=0.3)
+        plt.xticks(range(0, len(self.summed_features), 10))
 
-    plt.xticks(range(0, len(summed_features), 10))
+        plt.ylabel('Usage')
+        plt.title('Dota 2 hero usages in 40k matches')
 
-    plt.ylabel('Usage')
-    plt.title('Dota 2 hero usages in 40k matches')
-
-    plt.show()
-
-def load_saved_hero_data(filepath):
-    hero_data = BasicHeroData().read_json_file(filepath)
-    hero_data['data'] = np.array(hero_data['raw_data'])
-    hero_data['targets'] = np.array(hero_data['raw_targets'])
-    del hero_data['raw_targets']
-    del hero_data['raw_data']
-    return hero_data['data'], hero_data['targets'], hero_data['features'], hero_data['target_labels']
-
-def assess_hero_data(data):
-    # print formatting settings
-    np.set_printoptions(threshold=np.nan, linewidth=453)
-    # http://stackoverflow.com/questions/16468717/iterating-over-numpy-matrix-rows-to-apply-a-function-each
-    def sum(x):
-        return np.sum(x)
-    # find difference between the team 1 and team 2s usage of the player
-    def sub(x):
-        return abs(x[:113] - x[113:])
-    # total number of times (between both teams) a hero is used
-    def add(x):
-        return np.add(x[:113], x[113:])
+        plt.show()
 
 
-    # get sum of each column (find out how much each hero is used)
-    feature_details = np.apply_along_axis(sum, axis=0, arr=data)
+    def _drop_features(self, data, targets, features, threshold):
+        '''
+        drops data and features if they do not pass the percentage threshold 
+        uses percentage from _assess_hero_data
+        '''
+        column_drop_indexes = []
+        for i, x in enumerate(self.percentages):
+            if x < threshold:
+                column_drop_indexes.append(i)
+                column_drop_indexes.append(i + len(features) / 2)
 
-    summed_features = np.apply_along_axis(add, axis=0, arr=feature_details)
+        row_drop_indexes = []
+        for index, d in enumerate(data):
+            if any([d[i] == 1 for i in column_drop_indexes]):
+                row_drop_indexes.append(index)
 
-    percentages = np.divide(summed_features.astype('float32'), sum(summed_features))
+        data = np.delete(data, row_drop_indexes, 0)
+        targets = np.delete(targets, row_drop_indexes, 0)
+        features = np.delete(features, column_drop_indexes)
 
-    '''for i, x in enumerate(percentages):
-                    if x < .002:
-                        print i'''
-
-    return feature_details, summed_features, percentages
-
-
-def drop_features(data, targets, features, percentages, threshold):
-
-    column_drop_indexes = []
-    for i, x in enumerate(percentages):
-        if x < threshold:
-            column_drop_indexes.append(i)
-            column_drop_indexes.append(i + len(features) / 2)
-
-    print column_drop_indexes
-
-    row_drop_indexes = []
-    for index, d in enumerate(data):
-        if any([d[i] == 1 for i in column_drop_indexes]):
-            row_drop_indexes.append(index)
-
-    data = np.delete(data, row_drop_indexes, 0)
-    targets = np.delete(targets, row_drop_indexes, 0)
-    features = np.delete(features, column_drop_indexes)
-
-    return data, targets, features
-
-def _write_json_file(filepath, data):
-    with open(filepath, 'w') as f:
-        json.dump(data, f)
-
-def _save_data_dropped_features(threshold, name):
-
-    data, targets, features, target_labels = load_saved_hero_data('./Data/hero_data/full_40000_plus_data.json')
-    print len(data)
-
-    feature_details, summed_features, percentages = assess_hero_data(data)
-    #plot_summed(summed_features)
-    data, targets, features = drop_features(data, targets, features, percentages, threshold)
-    print len(data)
-    d = {
-        'data': data.tolist(),
-        'targets': targets.tolist(),
-        'features': features.tolist(),
-        'target_labels': target_labels
-    }
-    _write_json_file('./Data/hero_data/{}'.format(name), d)
+        return data, targets, features
 
 
+    def _save_data_dropped_features(self, threshold, name):
+        '''
+        Loads saved data, assesses the prevalence of heroes and drops features
+            and associated data from those that do not pass the threshold
+        '''
+        data, targets, features, target_labels = self.load_saved_hero_data('./Data/hero_data/full_40000_plus_data.json')
 
-
-
-if __name__ == "__main__":
-
-    _save_data_dropped_features(.004, 'threshold_004.json')
-
-
+        self._assess_hero_data(data)
+        #self._plot_summed()
+        data, targets, features = self._drop_features(data, targets, features, self.percentages, threshold)
+        
+        d = {
+            'data': data.tolist(),
+            'targets': targets.tolist(),
+            'features': features.tolist(),
+            'target_labels': target_labels
+        }
+        self.write_json_file('./Data/hero_data/{}'.format(name), d)
 
 
 
