@@ -11,6 +11,7 @@ from keras.callbacks import TensorBoard
 from data_util import BasicHeroData
 from sklearn.metrics import accuracy_score
 from keras.optimizers import SGD
+from keras.layers.noise import GaussianNoise
 from keras.layers import Dense, Activation, convolutional, pooling, Flatten, Dropout
 import numpy as np
 
@@ -148,6 +149,7 @@ model.add(Dropout(0.5))
 model.add(Dense(1024, activation='relu'))
 model.add(Dropout(0.5))
 
+model.add(GaussianNoise(1))
 
 # model.add(Dropout(0.5))
 # model.add(Dense(4096, activation='relu'))
