@@ -24,20 +24,42 @@ import matplotlib
 def cnn(data, targets, modelfile=None):
 
 
-    train_data, test_data, train_target, test_target = train_test_split(data, targets, test_size=0.2, random_state=42)
+    # train_data, test_data, train_target, test_target = train_test_split(data, targets, test_size=0.2, random_state=42)
+    train_data, data_set_2, train_target, target_set_2 = train_test_split(data, targets, test_size=0.25, random_state=42)
+    test_data, val_data, test_target, val_target = train_test_split(data_set_2, target_set_2, test_size=0.15, random_state=24)
+
+
+    print('Normal, X_train size: ', train_data.shape)
+    print('Normal, y_train size: ', train_target.shape)
+    print('Normal, X_test size: ', test_data.shape)
+    print('Normal, y_test size: ', test_target.shape)
+    print()
+    # train_data = np.concatenate((train_data, data_double), 0)
+    # train_target = np.concatenate((train_target, target_double), 0)
+    #
+    # test_data = np.concatenate((test_data, test_data_double), 0)
+    # test_target = np.concatenate((test_target, test_target_double), 0)
+
+
+
 
     # Display size
-    print('Before pre-processing, X_train size: ', train_data.shape)
-    print('Before pre-processing, y_train size: ', train_target.shape)
-    print('Before pre-processing, X_test size: ', test_target.shape)
-    print('Before pre-processing, y_test size: ',  test_target.shape)
+    # print('Doubling X_train size: ', train_data.shape)
+    # print('Doubling y_train size: ', train_target.shape)
+    # print('Doubling X_test size: ', test_data.shape)
+    # print('Doubling y_test size: ', test_target.shape)
+    # print()
 
-    # (nb_of_examples, nb_of_features, 1).
-    # http://stackoverflow.com/questions/43235531/convolutional-neural-network-conv1d-input-shape
-    X_train = train_data.reshape(train_data.shape[0], train_data.shape[1], 1)
-    X_test = test_data.reshape(test_data.shape[0], test_data.shape[1], 1)
+
+    # Pre-processing
+    X_train = train_data.reshape(train_data.shape[0],-1)
+    X_test = test_data.reshape(test_data.shape[0],-1)
     y_train = np_utils.to_categorical(train_target, 2)
     y_test = np_utils.to_categorical(test_target, 2)
+    val_data = val_data.reshape(val_data.shape[0],-1)
+    val_target = np_utils.to_categorical(val_target, 2)
+
+
 
     print('After pre-processing, X_train size: ', X_train.shape)
     print('After pre-processing, y_train size: ', y_train.shape)
@@ -111,11 +133,25 @@ def cnn(data, targets, modelfile=None):
     # model.fit(test_data, test_target, validation_split=0.25, validation_data=(test_data, test_target), epochs=50, batch_size=64, verbose=2)
     # model.fit(X_train, y_train, validation_split=0.25, epochs=15, batch_size=64, verbose=2)
     # model.fit(X_train, y_train, validation_split=0.25, epochs=15, batch_size=64, verbose=2)
-    model.fit(X_train, y_train, batch_size = 64, epochs=25, verbose=2, validation_data=(X_test, y_test) )
-
-
+    model.fit(X_train, y_train, batch_size = 64, epochs=25, verbose=2, validation_data=(val_data, val_target))
 
     loss, accuracy = model.evaluate(X_test, y_test, verbose=2)
+
+    # train_predict = model.predict(X_train, batch_size = 64, verbose=2)
+    # test_predict = model.predict(X_test, batch_size = 64, verbose=2)
+
+    print('The loss on testing data', loss)
+    print('The accuracy on testing data', accuracy)
+
+    loss, accuracy = model.evaluate(val_data, val_target, verbose=2)
+
+    print('The loss on validation data', loss)
+    print('The accuracy on validaiton data', accuracy)
+
+    print()
+    # print("Accuracy (Training Data (Data / Predicted Target) / sklearn.metrics.accuracy_score): " + str(accuracy_score(train_target, train_predict)))
+    print()  # print()
+    # print("Accuracy (Testing Data (Data / Predicted Target) / sklearn.metrics.accuracy_score): " + str(accuracy_score(test_target, test_predict)))
     print('test loss:', loss)
     print('test accuracy', accuracy)
 
