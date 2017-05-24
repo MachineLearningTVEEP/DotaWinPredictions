@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 from sklearn.model_selection import train_test_split
+from sklearn import decomposition
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 from keras.utils import np_utils
@@ -12,6 +13,7 @@ from data_util import BasicHeroData
 from sklearn.metrics import accuracy_score
 from keras.optimizers import SGD
 from keras.layers.noise import GaussianNoise
+from keras.layers.normalization import BatchNormalization
 from keras.layers import Dense, Activation, convolutional, pooling, Flatten, Dropout
 import numpy as np
 
@@ -38,6 +40,10 @@ data = h.data
 
 # train_data, train_data, train_target, test_target = train_test_split(data, targets, test_size=0.2, random_state=42)
 
+# trying to apply PCA for dimensionality reduction
+#pca = decomposition.PCA(n_components=226)
+#pca.fit(data)
+#data = pca.fit_transform(data)
 
 # split up two groups, one beting the data, the other whil split up furture to a valdiation set and test set, no overlapping data
 train_data, data_set_2, train_target, target_set_2 = train_test_split(data, targets, test_size=0.25, random_state=42)
@@ -129,9 +135,9 @@ model = Sequential()
 # in the first layer, you must specify the expected input data shape:
 # here, 20-dimensional vectors.
 # model.add(Dense(4096, activation='relu', input_dim=224))
-model.add(Dense(256, activation='relu', input_dim=train_data.shape[1]))
+model.add(Dense(1024, activation='relu', input_dim=train_data.shape[1]))
 model.add(Dropout(0.5))
-model.add(Dense(256, activation='relu'))
+model.add(Dense(1024, activation='relu'))
 model.add(Dropout(0.5))
 
 
@@ -143,13 +149,14 @@ model.add(Dense(512, activation='relu'))
 model.add(Dropout(0.5))
 
 
-model.add(Dense(1024, activation='relu'))
+model.add(Dense(512, activation='relu'))
 model.add(Dropout(0.5))
 
-model.add(Dense(1024, activation='relu'))
+model.add(Dense(512, activation='relu'))
 model.add(Dropout(0.5))
 
 model.add(GaussianNoise(1))
+#model.add(BatchNormalization())
 
 # model.add(Dropout(0.5))
 # model.add(Dense(4096, activation='relu'))
@@ -213,7 +220,6 @@ model.compile(
 #               optimizer=sgd,
 #               metrics=['accuracy'])
 #
-
 
 # Training
 model.fit(X_train, y_train, batch_size = 64, epochs=25, verbose=2, validation_data=(val_data, val_target) )

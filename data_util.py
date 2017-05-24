@@ -234,10 +234,10 @@ class BasicHeroData(DotaData):
         base_filepath = "./Data/Matches_By_Id/chunked/"
 
         r = matches[:remainder]
-        dota_data.write_json_file("{}{}".format(base_filepath, 'remainder.json'), r)
+        self.write_json_file("{}{}".format(base_filepath, 'remainder.json'), r)
         for i in range(iterations):
             match_subset = matches[remainder + (i * amount):remainder + ((i + 1) * amount)]
-            dota_data.write_json_file("{}{}".format(base_filepath, '{}.json'.format(str(i + 1))), match_subset)
+            self.write_json_file("{}{}".format(base_filepath, '{}.json'.format(str(i + 1))), match_subset)
 
     def _chunk_matches(self, filename):
         '''
@@ -248,16 +248,9 @@ class BasicHeroData(DotaData):
         '''
 
         match_ids = self.read_json_file("./Data/Matches_By_Id/chunked/{}.json".format(filename))
-        matches = []
-        for mid in match_ids:
-            status, data = dota_data.get("matches/{}".format(mid))
-
-            if(status == 200):
-                matches.append(data)
-
-            sleep(1.1)  # the opendota api requests that this endpoint only be hit 1/s
+        matches = self._get_match(match_ids)
         matches = self.shorten_data(matches, {'players': ['isRadiant', 'hero_id'], 'radiant_win': None})
-        dota_data.write_json_file("./Data/Matches/chunked/{}.json".format(filename), matches)
+        self.write_json_file("./Data/Matches/chunked/{}.json".format(filename), matches)
 
         try:
             import time
@@ -273,6 +266,21 @@ class BasicHeroData(DotaData):
         except ImportError:
             pass
 
+    def _get_match(self, match_ids):
+        '''
+        calls the dota matches endpoint with input match_ids
+        '''
+        matches = []
+        for mid in match_ids:
+            status, data = self.get("matches/{}".format(mid))
+            print (mid)
+            if(status == 200):
+                matches.append(data)
+            else:
+                print ("bad status")
+            sleep(1.1)  # the opendota api requests that this endpoint only be hit 1/s
+        return matches
+
     def _gather_chunked_data(self, r_max, outfile='40k_matches_short.json'):
         '''
         Saves all the individual chunks in one file
@@ -284,6 +292,14 @@ class BasicHeroData(DotaData):
 
         self.write_json_file('./Data/Matches/{}'.format(outfile), matches)
 
+    def _data(self):
+        return {
+            'raw_data': self.raw_data,
+            'raw_targets': self.raw_targets,
+            'features': self.hero_features,
+            'target_labels': self.target_labels
+        }
+
     def _save_hero_data(self):
         '''
         saves data in np friendly format to be loaded into ML methods
@@ -291,12 +307,7 @@ class BasicHeroData(DotaData):
         '''
         matches = self.read_json_file('./Data/Matches/40k_matches_short.json')
         self.load_data(matches)
-        data = {
-            'raw_data': self.raw_data,
-            'raw_targets': self.raw_targets,
-            'features': self.hero_features,
-            'target_labels': self.target_labels
-        }
+        data = self._data()
         self.write_json_file('./Data/hero_data/full_40000_plus_data.json', data)
 
 
@@ -384,11 +395,11 @@ class BasicHeroData(DotaData):
 
         self._assess_hero_data(data)
         #self._plot_summed()
-        data, targets, features = self._drop_features(data, targets, features, self.percentages, threshold)
+        data, targets, features = self._drop_features(data, targets, features, threshold)
         
         d = {
-            'data': data.tolist(),
-            'targets': targets.tolist(),
+            'raw_data': data.tolist(),
+            'raw_targets': targets.tolist(),
             'features': features.tolist(),
             'target_labels': target_labels
         }
@@ -396,9 +407,17 @@ class BasicHeroData(DotaData):
 
 
 
+    def _match_id_dict_to_list(self, read_path, write_path):
+        matches = self.read_json_file(read_path)
+        self.write_json_file(write_path, sorted([m['match_id'] for m in matches]))
 
+if __name__ == '__main__':
+    #BasicHeroData()._match_id_dict_to_list('./Data/Matches_By_Id/40000_plus_matches.json', './Data/Matches_By_Id/40k_id_list.json')
 
+    #BasicHeroData()._save_data_dropped_features(.005, 'threshold_005.json')
 
-
+    r = requests.get('https://api.opendota.com/api/matches/3191602004')
+    print (r) 
+    print (r.content)
 
 
