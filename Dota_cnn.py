@@ -51,13 +51,20 @@ def cnn(data, targets, modelfile=None):
     # print()
 
 
-    # Pre-processing
-    X_train = train_data.reshape(train_data.shape[0],-1)
-    X_test = test_data.reshape(test_data.shape[0],-1)
+    X_train = train_data.reshape(train_data.shape[0], train_data.shape[1], 1)
+    X_test = test_data.reshape(test_data.shape[0], test_data.shape[1], 1)
     y_train = np_utils.to_categorical(train_target, 2)
     y_test = np_utils.to_categorical(test_target, 2)
-    val_data = val_data.reshape(val_data.shape[0],-1)
+    val_data = val_data.reshape(val_data.shape[0],-1, 1)
     val_target = np_utils.to_categorical(val_target, 2)
+	
+    # Pre-processing
+    #X_train = train_data.reshape(train_data.shape[0],-1)
+    #X_test = test_data.reshape(test_data.shape[0],-1)
+    #y_train = np_utils.to_categorical(train_target, 2)
+    #y_test = np_utils.to_categorical(test_target, 2)
+    #val_data = val_data.reshape(val_data.shape[0],-1)
+    #val_target = np_utils.to_categorical(val_target, 2)
 
 
 
@@ -65,7 +72,6 @@ def cnn(data, targets, modelfile=None):
     print('After pre-processing, y_train size: ', y_train.shape)
     print('After pre-processing, X_test size: ', X_test.shape)
     print('After pre-processing, y_test size: ', y_test.shape)
-
 
     model = Sequential()
 
@@ -159,7 +165,7 @@ def cnn(data, targets, modelfile=None):
         if modelfile.endswith('.h5'):
             model.save('./models/{}'.format(modelfile))
         else:
-            print "Can't save your model; bad extension"
+            print ("Can't save your model; bad extension")
 
 if __name__ == '__main__':
 
