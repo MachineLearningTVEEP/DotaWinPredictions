@@ -6,13 +6,11 @@ from keras.optimizers import Adam
 from sklearn.model_selection import train_test_split
 from data_util import BasicHeroData
 
-
 import numpy as np
+
 np.random.seed(1337)
 import matplotlib.pyplot as plt
 import matplotlib
-
-
 
 
 # targets_double = np.copy(targets)
@@ -22,12 +20,11 @@ import matplotlib
 # targets = np.concatenate((targets, targets_double))
 
 def cnn(data, targets, modelfile=None):
-
-
     # train_data, test_data, train_target, test_target = train_test_split(data, targets, test_size=0.2, random_state=42)
-    train_data, data_set_2, train_target, target_set_2 = train_test_split(data, targets, test_size=0.25, random_state=42)
-    test_data, val_data, test_target, val_target = train_test_split(data_set_2, target_set_2, test_size=0.15, random_state=24)
-
+    train_data, data_set_2, train_target, target_set_2 = train_test_split(data, targets, test_size=0.25,
+                                                                          random_state=42)
+    test_data, val_data, test_target, val_target = train_test_split(data_set_2, target_set_2, test_size=0.15,
+                                                                    random_state=24)
 
     print('Normal, X_train size: ', train_data.shape)
     print('Normal, y_train size: ', train_target.shape)
@@ -51,13 +48,20 @@ def cnn(data, targets, modelfile=None):
     # print()
 
 
-    # Pre-processing
-    X_train = train_data.reshape(train_data.shape[0],-1)
-    X_test = test_data.reshape(test_data.shape[0],-1)
+    X_train = train_data.reshape(train_data.shape[0], train_data.shape[1], 1)
+    X_test = test_data.reshape(test_data.shape[0], test_data.shape[1], 1)
     y_train = np_utils.to_categorical(train_target, 2)
     y_test = np_utils.to_categorical(test_target, 2)
-    val_data = val_data.reshape(val_data.shape[0],-1)
+    val_data = val_data.reshape(val_data.shape[0], -1, 1)
     val_target = np_utils.to_categorical(val_target, 2)
+
+    # Pre-processing
+    # X_train = train_data.reshape(train_data.shape[0],-1)
+    # X_test = test_data.reshape(test_data.shape[0],-1)
+    # y_train = np_utils.to_categorical(train_target, 2)
+    # y_test = np_utils.to_categorical(test_target, 2)
+    # val_data = val_data.reshape(val_data.shape[0],-1)
+    # val_target = np_utils.to_categorical(val_target, 2)
 
 
 
@@ -65,7 +69,6 @@ def cnn(data, targets, modelfile=None):
     print('After pre-processing, y_train size: ', y_train.shape)
     print('After pre-processing, X_test size: ', X_test.shape)
     print('After pre-processing, y_test size: ', y_test.shape)
-
 
     model = Sequential()
 
@@ -96,7 +99,6 @@ def cnn(data, targets, modelfile=None):
         padding='same',
     ))
 
-
     #
     # model.add(convolutional.Conv2D(
     #     filters=64,
@@ -119,12 +121,10 @@ def cnn(data, targets, modelfile=None):
     model.add(Dense(2))
     model.add(Activation('softmax'))
 
-
-
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 
     model.compile(
-        optimizer = adam,
+        optimizer=adam,
         loss='categorical_crossentropy',
         metrics=['accuracy']
     )
@@ -133,7 +133,7 @@ def cnn(data, targets, modelfile=None):
     # model.fit(test_data, test_target, validation_split=0.25, validation_data=(test_data, test_target), epochs=50, batch_size=64, verbose=2)
     # model.fit(X_train, y_train, validation_split=0.25, epochs=15, batch_size=64, verbose=2)
     # model.fit(X_train, y_train, validation_split=0.25, epochs=15, batch_size=64, verbose=2)
-    model.fit(X_train, y_train, batch_size = 64, epochs=25, verbose=2, validation_data=(val_data, val_target))
+    model.fit(X_train, y_train, batch_size=64, epochs=25, verbose=2, validation_data=(val_data, val_target))
 
     loss, accuracy = model.evaluate(X_test, y_test, verbose=2)
 
@@ -159,27 +159,12 @@ def cnn(data, targets, modelfile=None):
         if modelfile.endswith('.h5'):
             model.save('./models/{}'.format(modelfile))
         else:
-            print "Can't save your model; bad extension"
+            print ("Can't save your model; bad extension")
+
 
 if __name__ == '__main__':
-
-
     h = BasicHeroData()
-    d = h.load_saved_hero_data('./Data/hero_data/full_40000_plus_data.json')
+    # d = h.load_saved_hero_data('./Data/hero_data/full_40000_plus_data.json')
+    d = h.load_saved_hero_data('./Data/hero_data/threshold_003.json')
     data, targets, features, target_labels = d
     cnn(data, targets)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#

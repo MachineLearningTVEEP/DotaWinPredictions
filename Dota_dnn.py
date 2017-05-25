@@ -1,7 +1,6 @@
 # The modules we're going to use
 from __future__ import print_function
 
-from keras import Input
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Dense, Activation, GaussianNoise, GaussianDropout
@@ -9,8 +8,6 @@ from keras.utils import np_utils
 from keras.optimizers import Adam
 from keras.datasets import mnist
 from keras.callbacks import TensorBoard
-from tensorflow import Tensor
-
 from data_util import BasicHeroData
 from sklearn.metrics import accuracy_score
 from keras.optimizers import SGD
@@ -89,13 +86,10 @@ def dnn(data, targets, modelfile=None):
 
 
     # Pre-processing
-    #     train_data = train_data.reshape(-1, 1, 48, 48)
     X_train = train_data.reshape(train_data.shape[0],-1)
     X_test = test_data.reshape(test_data.shape[0],-1)
     y_train = np_utils.to_categorical(train_target, 2)
-    # y_train = y_train.reshape((-1, 1))
     y_test = np_utils.to_categorical(test_target, 2)
-    # y_test = y_test.reshape((-1, 1))
     val_data = val_data.reshape(val_data.shape[0],-1)
     val_target = np_utils.to_categorical(val_target, 2)
 
@@ -122,82 +116,104 @@ def dnn(data, targets, modelfile=None):
     #     Activation('softmax')
     # ])
 
-    # model = Sequential()
-
-    # from keras.regularizers import activity_l1
-    from keras import regularizers
-    from keras.models import Model
+    model = Sequential()
 
 
 
 
 
-    inputs = Input(shape=(226, ))
 
-    x = Dense(1024, activation='relu')(inputs)
-    # x = Dense(256, activation='relu')(x)
-    x = GaussianNoise(.2)(x)
-    encoded = GaussianDropout(.05)(x)
 
-    # encoded = Dropout(.25)(x)
+    # Dense(64) is a fully-connected layer with 64 hidden units.
+    # in the first layer, you must specify the expected input data shape:
+    # here, 20-dimensional vectors.
+    # model.add(Dense(4096, activation='relu', input_dim=224))
+    model.add(Dense(2048, activation='relu', input_dim=train_data.shape[1]))
+    model.add(GaussianNoise(.5))
+    model.add(GaussianDropout(.5))
+    # model.add(Dropout(0.1))
 
-    # x = GaussianNoise(.5)(encoded)
+    # model.add(Dense(512, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
 
-    # decoded = Dense(2048, activation='relu', input_dim=train_data.shape[1])(x)
-    decoded = Dense(2, activation='softmax')(encoded)
+    # model.add(Dropout(0.1))
 
-    autoencoder = Model(inputs, decoded)
+    # model.add(Dense(64, activation='relu'))
+    #
+    # model.add(Dense(64, activation='relu'))
+    # model.add(Dense(64, activation='relu'))
+    #
+    # model.add(Dense(32, activation='relu'))
+    # model.add(Dense(32, activation='relu'))
+    # model.add(Dense(2048, activation='relu'))
+    # model.add(Dense(2048, activation='relu'))
+    # model.add(Dense(2,048, activation='relu'))
+    # model.add(Dropout(0.1))
 
-    # h = Dense(64, activation='sigmoid', activity_regularizer=activity_l1(1e-5))(inputs)
-    # h = Dense(64, activation='sigmoid', activity_regularizer=regularizers.l1(1e-5))(inputs)
-    # outputs = Dense(226)(h)
-    # model = Model(input=inputs, output=outputs)
-    # model = Model(input=Tensor(inputs), output=Tensor(outputs))
+
+#
+    #
+    # model.add(Dense(512, activation='relu'))
+    # model.add(Dropout(0.5))
+    #
+    # model.add(Dense(512, activation='relu'))
+    # model.add(Dropout(0.5))
+    #
+    #
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dropout(0.5))
+    #
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dropout(0.5))
+
+
+    # model.add(Dropout(0.5))
+    # model.add(Dense(4096, activation='relu'))
+    # model.add(Dropout(0.25))
+    # model.add(Dense(4096, activation='relu'))
+    # model.add(Dense(4096, activation='relu'))
+    # model.add(Dense(4096, activation='relu'))
+    # model.add(Dense(4096, activation='relu'))
+    # model.add(Dense(4096, activation='relu'))
+    # model.add(Dense(4096, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(512, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dropout(0.5))
+    # model.add(Dense(1024, activation='relu'))
+    # model.add(Dropout(0.25))
+    # model.add(Dropout(0.25))
+
+
+
+
+    model.add(Dense(2, activation='softmax'))
+
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-    # model.compile(optimizer='adam', loss='mse')
 
-    autoencoder.compile(
-        optimizer=adam,
-        # loss='sparse_categorical_crossentropy',
+    model.compile(
+        optimizer = adam,
         loss='categorical_crossentropy',
-        # loss='mse',
         metrics=['accuracy']
     )
-
-    # model.fit(X, X, batch_size=64, nb_epoch=5)
-
-
-    # model.fit(X_train, X_train, batch_size=128, epochs=15, verbose=2, validation_data=(val_data, val_data))
-    # autoencoder.fit(X_train, y_train, batch_size=128, epochs=50, verbose=2)
-    # autoencoder.fit(X_train, y_train, batch_size=128, epochs=50, verbose=2)
-    autoencoder.fit(X_train, y_train, batch_size=128, epochs=50, verbose=2, validation_data=(val_data, val_target))
-    # model.fit(X_train, y_train, batch_size=128, epochs=50, verbose=2)
-    # model.fit(X_train, X_train, batch_size=128, epochs=50, verbose=2)
-
-
-    # model.add(Dense(4096, activation='relu', input_dim=train_data.shape[1]))
-    # model.add(GaussianNoise(0.5))
-    # model.add(GaussianDropout(.1))
-    # model.add(Dense(32, activation='relu'))
-    # model.add(GaussianNoise(0.5))
-    # model.add(Dense(4096, activation='relu'))
-    # model.add(GaussianDropout(.1))
-    #
-
-
-
-
-
-
-    # model.add(Dense(2, activation='softmax'))
-    #
-    # adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-    #
-    # model.compile(
-    #     optimizer = adam,
-    #     loss='categorical_crossentropy',
-    #     metrics=['accuracy']
-    # )
 
     # model.compile(
     #     optimizer='rmsprop',
@@ -220,10 +236,10 @@ def dnn(data, targets, modelfile=None):
 
 
     # Training
-    # model.fit(X_train, y_train, batch_size = 128, epochs=50, verbose=2, validation_data=(val_data, val_target) )
+    model.fit(X_train, y_train, batch_size = 64, epochs=25, verbose=2, validation_data=(val_data, val_target) )
 
 
-    loss, accuracy = autoencoder.evaluate(X_test, y_test, verbose=2)
+    loss, accuracy = model.evaluate(X_test, y_test, verbose=2)
 
 
     # train_predict = model.predict(X_train, batch_size = 64, verbose=2)
@@ -231,18 +247,18 @@ def dnn(data, targets, modelfile=None):
 
     print('The loss on testing data', loss)
     print('The accuracy on testing data', accuracy)
-    #
-    loss, accuracy = autoencoder.evaluate(val_data, val_target, verbose=2)
-    #
+
+    loss, accuracy = model.evaluate(val_data, val_target, verbose=2)
+
     print('The loss on validation data', loss)
     print('The accuracy on validaiton data', accuracy)
 
-    # print()
-    # # print("Accuracy (Training Data (Data / Predicted Target) / sklearn.metrics.accuracy_score): " + str(accuracy_score(train_target, train_predict)))
-    # print()# print()
-    # # print("Accuracy (Testing Data (Data / Predicted Target) / sklearn.metrics.accuracy_score): " + str(accuracy_score(test_target, test_predict)))
-    # print('test loss:', loss)
-    # print('test accuracy', accuracy)
+    print()
+    # print("Accuracy (Training Data (Data / Predicted Target) / sklearn.metrics.accuracy_score): " + str(accuracy_score(train_target, train_predict)))
+    print()# print()
+    # print("Accuracy (Testing Data (Data / Predicted Target) / sklearn.metrics.accuracy_score): " + str(accuracy_score(test_target, test_predict)))
+    print('test loss:', loss)
+    print('test accuracy', accuracy)
 
     if modelfile:
         if modelfile.endswith('.h5'):

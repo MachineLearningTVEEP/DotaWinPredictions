@@ -490,7 +490,6 @@ class BasicHeroData(DotaData):
         # return X
 
     def double_inverse_samples(self, original_arr):
-        print(original_arr)
         doubled_arr = np.zeros((original_arr.shape[0] * 2, original_arr.shape[1]))
         j = 0
         for i in range (0, doubled_arr.shape[0], 2):
@@ -498,32 +497,7 @@ class BasicHeroData(DotaData):
             # doubled_arr[i+1] = np.copy(original_arr[j])
             doubled_arr[i+1] = [0 if x == True else 1 for x in original_arr[j]]
             j = j + 1
-        print()
-        print(doubled_arr)
-
-        #
-        #
-        # print(original_arr)
-        # doubled_arr = np.zeros((original_arr.shape[0] * 2, original_arr.shape[1]))
-        # for i in range (0, original_arr.shape[0]):
-        #     doubled_arr[i] = [1 if x == True else 0 for x in original_arr[i]]
-        #     # print (doubled_arr[i])
-        # # doubled_arr = np.logical_not(original_arr.all(if True: 1))
-        #
-        # print()
-        # print(doubled_arr)
-
-
-
-        # doubled_arr = np.invert((original_arr.shape[0], original_arr.shape[1]))
-        # print(doubled_arr.shape)
-        # for i in range(0, original_arr.shape[0], 2):
-        #     doubled_arr[i] =  np.copy(original_arr[i])
-        #     doubled_arr[i+1] =  np.copy(original_arr[i])
-        # final = np.vstack((original_arr, doubled_arr)).flatten()
-        # print()
-        # print(final)
-        #
+        return doubled_arr
         # A = np.ones((4, 3))
         # B = np.zeros_like(A)
         #
@@ -531,12 +505,6 @@ class BasicHeroData(DotaData):
         #
         # C[::2, :] = A
         # C[1::2, :] = B
-
-        # return doubled_arr
-
-    # def  interweave_duplicates(self, original_arr, doubled_arr):
-    #     for i in range(0, original_arr.shape[0]):
-    #
 
 
 if __name__ == '__main__':
@@ -551,6 +519,20 @@ if __name__ == '__main__':
     h = BasicHeroData()
 
     features = 10
+    num_samples = 10
+
+    print()
+
+    a = h.make_dummy_input_array(features, num_samples)
+
+    # print(a.shape)
+
+    h.double_inverse_samples(a)
+
+
+
+
+    features = 1
     num_samples = 10
 
     print()
