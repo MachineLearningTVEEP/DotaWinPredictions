@@ -93,7 +93,9 @@ def dnn(data, targets, modelfile=None):
     X_train = train_data.reshape(train_data.shape[0],-1)
     X_test = test_data.reshape(test_data.shape[0],-1)
     y_train = np_utils.to_categorical(train_target, 2)
+    # y_train = y_train.reshape((-1, 1))
     y_test = np_utils.to_categorical(test_target, 2)
+    # y_test = y_test.reshape((-1, 1))
     val_data = val_data.reshape(val_data.shape[0],-1)
     val_target = np_utils.to_categorical(val_target, 2)
 
@@ -120,7 +122,7 @@ def dnn(data, targets, modelfile=None):
     #     Activation('softmax')
     # ])
 
-    model = Sequential()
+    # model = Sequential()
 
     # from keras.regularizers import activity_l1
     from keras import regularizers
@@ -132,25 +134,43 @@ def dnn(data, targets, modelfile=None):
 
     inputs = Input(shape=(226, ))
 
+    x = Dense(1024, activation='relu')(inputs)
+    # x = Dense(256, activation='relu')(x)
+    x = GaussianNoise(.2)(x)
+    encoded = GaussianDropout(.05)(x)
+
+    # encoded = Dropout(.25)(x)
+
+    # x = GaussianNoise(.5)(encoded)
+
+    # decoded = Dense(2048, activation='relu', input_dim=train_data.shape[1])(x)
+    decoded = Dense(2, activation='softmax')(encoded)
+
+    autoencoder = Model(inputs, decoded)
+
     # h = Dense(64, activation='sigmoid', activity_regularizer=activity_l1(1e-5))(inputs)
-    h = Dense(64, activation='sigmoid', activity_regularizer=regularizers.l1(1e-5))(inputs)
-    outputs = Dense(226)(h)
-    model = Model(input=inputs, output=outputs)
+    # h = Dense(64, activation='sigmoid', activity_regularizer=regularizers.l1(1e-5))(inputs)
+    # outputs = Dense(226)(h)
+    # model = Model(input=inputs, output=outputs)
     # model = Model(input=Tensor(inputs), output=Tensor(outputs))
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
     # model.compile(optimizer='adam', loss='mse')
 
-    model.compile(
+    autoencoder.compile(
         optimizer=adam,
-        # loss='categorical_crossentropy',
-        loss='mse',
+        # loss='sparse_categorical_crossentropy',
+        loss='categorical_crossentropy',
+        # loss='mse',
         metrics=['accuracy']
     )
 
     # model.fit(X, X, batch_size=64, nb_epoch=5)
 
-    model.fit(X_train, X_train, batch_size=128, epochs=15, verbose=2, validation_data=(val_data, val_data))
-    # model.fit(X_train, y_train, batch_size=128, epochs=50, verbose=2, validation_data=(val_data, val_target))
+
+    # model.fit(X_train, X_train, batch_size=128, epochs=15, verbose=2, validation_data=(val_data, val_data))
+    # autoencoder.fit(X_train, y_train, batch_size=128, epochs=50, verbose=2)
+    # autoencoder.fit(X_train, y_train, batch_size=128, epochs=50, verbose=2)
+    autoencoder.fit(X_train, y_train, batch_size=128, epochs=50, verbose=2, validation_data=(val_data, val_target))
     # model.fit(X_train, y_train, batch_size=128, epochs=50, verbose=2)
     # model.fit(X_train, X_train, batch_size=128, epochs=50, verbose=2)
 
@@ -203,19 +223,19 @@ def dnn(data, targets, modelfile=None):
     # model.fit(X_train, y_train, batch_size = 128, epochs=50, verbose=2, validation_data=(val_data, val_target) )
 
 
-    loss, accuracy = model.evaluate(X_test, y_test, verbose=2)
+    loss, accuracy = autoencoder.evaluate(X_test, y_test, verbose=2)
 
 
     # train_predict = model.predict(X_train, batch_size = 64, verbose=2)
     # test_predict = model.predict(X_test, batch_size = 64, verbose=2)
 
-    # print('The loss on testing data', loss)
-    # print('The accuracy on testing data', accuracy)
+    print('The loss on testing data', loss)
+    print('The accuracy on testing data', accuracy)
     #
-    # loss, accuracy = model.evaluate(val_data, val_target, verbose=2)
+    loss, accuracy = autoencoder.evaluate(val_data, val_target, verbose=2)
     #
-    # print('The loss on validation data', loss)
-    # print('The accuracy on validaiton data', accuracy)
+    print('The loss on validation data', loss)
+    print('The accuracy on validaiton data', accuracy)
 
     # print()
     # # print("Accuracy (Training Data (Data / Predicted Target) / sklearn.metrics.accuracy_score): " + str(accuracy_score(train_target, train_predict)))
