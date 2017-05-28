@@ -419,44 +419,63 @@ class BasicHeroData(DotaData):
         '''
         TODO
         '''
+        print "A"
         match_ids = self.read_json_file(infile)
 
         matches = []
 
-        for mid in match_ids:
+        for mid in match_ids[:1]:
+            print "B"
             status, match = self.get('/matches/{}'.format(mid))
-            pp(match)
+            #pp(match)
             M = self.shorten_data([match], {'players': ['account_id', 'hero_id'], 'match_id': None})
 
-            pp(M)
+            #pp(M)
             _M = []
             for player in M[0]['players']:
                 status, _player = self.get('/players/{}'.format(player['account_id']))
                 #pp(player)
                 sleep(1.1)
-                pp(player)
+                #pp(player)
                 p = (self.shorten_data([_player], {'solo_competitive_rank':None, 'competitive_rank': None, 'mmr_estimate':None}))
-                pp(p)
+                #pp(p)
                 #p.update(player)
                 player.update(p[0])
+
+            #pp(M)
+            matches.append(M[0])
+
+        #pp(matches)
+        matches = {m['match_id']:m['players'] for m in matches}
+        #pp(matches)
+
+        self.write_json_file(outfile, matches)
+
+    def get_solo_player_rankings(self, infile, outfile):
+
+        match_ids = self.read_json_file(infile)
+
+        matches = []
+
+        for mid in match_ids[:2]:
+            status, match = self.get('/matches/{}'.format(mid))
+            #pp(match)
+            M = self.shorten_data([match], {'players': ['account_id', 'hero_id', 'solo_competitive_rank'], 'match_id': None})
 
             pp(M)
             matches.append(M[0])
 
         pp(matches)
         matches = {m['match_id']:m['players'] for m in matches}
-        pp(matches)
-
         self.write_json_file(outfile, matches)
 
-
-
-
-
-def tanner_run_this():
+def solo():
+    '''
+    Tanner, Run this on the 16 gb machine you have; it should take 16 hrs like the last one
+    '''
     h = BasicHeroData()
     dir_1 = './Data/Matches_By_Id/chunked/'
-    dir_2 = './Data/Matches/chunked_players/'
+    dir_2 = './Data/Matches/solo_chunked/'
     if not os.path.isdir(dir_1):
         os.mkdir(dir_1)
     if not os.path.isdir(dir_2):
@@ -467,6 +486,40 @@ def tanner_run_this():
 
 
 
+def run_on_machine(low, high):
+    h = BasicHeroData()
+    dir_1 = './Data/Matches_By_Id/chunked/'
+    dir_2 = './Data/Matches/chunked_players/'
+    if not os.path.isdir(dir_1):
+        os.mkdir(dir_1)
+    if not os.path.isdir(dir_2):
+        os.mkdir(dir_2)
+    for i in range(low,high):
+        h.get_player_rankings('{}{}.json'.format(dir_1, str(i)), '{}{}.json'.format(dir_2, str(i)))
+    h.get_player_rankings('{}remainder.json'.format(dir_1), '{}remainder.json'.format(dir_2))   
+
+#TANNER, run one of these on each of the amazon machines
+
+def machine_1():
+    run_on_machine(1, 3)
+def machine_2():
+    run_on_machine(3, 5)
+def machine_3():
+    run_on_machine(5, 7)
+def machine_4():
+    run_on_machine(7, 9)
+def machine_5():
+    run_on_machine(9, 11)
+def machine_6():
+    run_on_machine(11, 13)
+def machine_7():
+    run_on_machine(13, 15)
+def machine_8():
+    run_on_machine(15, 17)
+def machine_9():
+    run_on_machine(17, 19)
+def machine_10():
+    run_on_machine(19, 21)
 
 
 def make_dummy_input_array(features, num_samples):
@@ -552,13 +605,7 @@ def double_inverse_samples(original_arr):
 
 
 if __name__ == '__main__':
-    tanner_run_this()
 
-    #print M
-    #matches = {m['match_id']:[p['account_id'] for p in m['players']] for m in M}
-    #for match_id_key in matches:
-
-    #print matches
 
 
 
