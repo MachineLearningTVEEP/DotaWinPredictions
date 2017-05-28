@@ -605,8 +605,8 @@ def double_inverse_samples(original_arr):
 
 
 if __name__ == '__main__':
-    run_on_machine(21, 23)
-
+    # run_on_machine(21, 23)
+    machine_1()
 
 
 
