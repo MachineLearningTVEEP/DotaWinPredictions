@@ -424,7 +424,7 @@ class BasicHeroData(DotaData):
 
         matches = []
 
-        for mid in match_ids[:1]:
+        for mid in match_ids:
             print "B"
             status, match = self.get('/matches/{}'.format(mid))
             #pp(match)
@@ -457,7 +457,7 @@ class BasicHeroData(DotaData):
 
         matches = []
 
-        for mid in match_ids[:2]:
+        for mid in match_ids:
             status, match = self.get('/matches/{}'.format(mid))
             #pp(match)
             M = self.shorten_data([match], {'players': ['account_id', 'hero_id', 'solo_competitive_rank'], 'match_id': None})
@@ -605,6 +605,7 @@ def double_inverse_samples(original_arr):
 
 
 if __name__ == '__main__':
+    run_on_machine(21, 23)
 
 
 
