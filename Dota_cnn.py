@@ -164,7 +164,7 @@ def cnn(data, targets, modelfile=None):
 
 if __name__ == '__main__':
     h = BasicHeroData()
-    # d = h.load_saved_hero_data('./Data/hero_data/full_40000_plus_data.json')
-    d = h.load_saved_hero_data('./Data/hero_data/threshold_003.json')
+    d = h.load_saved_hero_data('./Data/hero_data/full_40000_plus_data.json')
+    # d = h.load_saved_hero_data('./Data/hero_data/threshold_003.json')
     data, targets, features, target_labels = d
     cnn(data, targets)

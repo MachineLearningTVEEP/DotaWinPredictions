@@ -260,11 +260,11 @@ def dnn(data, targets, modelfile=None):
     print('test loss:', loss)
     print('test accuracy', accuracy)
 
-    if modelfile:
-        if modelfile.endswith('.h5'):
-            model.save('./models/{}'.format(modelfile))
-        else:
-            print ("Can't save your model; bad extension")
+    # if modelfile:
+    #     if modelfile.endswith('.h5'):
+    #         model.save('./models/{}'.format(modelfile))
+    #     else:
+    #         print ("Can't save your model; bad extension")
 
 if __name__ == '__main__':
 

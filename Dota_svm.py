@@ -55,10 +55,6 @@ def _svm(data, targets, modelfile=None):
     print()
     print("Accuracy (Training Data (Data / Predicted Target) / sklearn.metrics.accuracy_score): " +  str(accuracy_score(train_target, train_predict_1)))
 
-
-
-
-
     print()
     print("Accuracy (Testing Data (Data / True Target) /  sklearn.svm.SVC.Score): " + str(s_machine.score(test_data, test_target)))
     print()
@@ -70,8 +66,8 @@ def _svm(data, targets, modelfile=None):
 if __name__ == '__main__':
     h = BasicHeroData()
 
-    d = h.load_saved_hero_data('./Data/hero_data/threshold_003.json')
-    # d = h.load_saved_hero_data('./Data/hero_data/full_40000_plus_data.json')
+    # d = h.load_saved_hero_data('./Data/hero_data/threshold_003.json')
+    d = h.load_saved_hero_data('./Data/hero_data/full_40000_plus_data.json')
     data, targets, features, target_labels = d
 
     data = h.double_inverse_samples(data)
