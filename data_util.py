@@ -4,6 +4,7 @@ from numpy import dstack
 
 from time import sleep
 import json
+import os
 import matplotlib.pyplot as plt
 
 
@@ -414,90 +415,186 @@ class BasicHeroData(DotaData):
         self.write_json_file(write_path, sorted([m['match_id'] for m in matches]))
 
 
+    def get_player_rankings(self, infile, outfile):
+        '''
+        TODO
+        '''
+        print "A"
+        match_ids = self.read_json_file(infile)
+
+        matches = []
+
+        for mid in match_ids:
+            print "B"
+            status, match = self.get('/matches/{}'.format(mid))
+            #pp(match)
+            M = self.shorten_data([match], {'players': ['account_id', 'hero_id'], 'match_id': None})
+
+            #pp(M)
+            _M = []
+            for player in M[0]['players']:
+                status, _player = self.get('/players/{}'.format(player['account_id']))
+                #pp(player)
+                sleep(1.1)
+                #pp(player)
+                p = (self.shorten_data([_player], {'solo_competitive_rank':None, 'competitive_rank': None, 'mmr_estimate':None}))
+                #pp(p)
+                #p.update(player)
+                player.update(p[0])
+
+            #pp(M)
+            matches.append(M[0])
+
+        #pp(matches)
+        matches = {m['match_id']:m['players'] for m in matches}
+        #pp(matches)
+
+        self.write_json_file(outfile, matches)
+
+    def get_solo_player_rankings(self, infile, outfile):
+
+        match_ids = self.read_json_file(infile)
+
+        matches = []
+
+        for mid in match_ids:
+            status, match = self.get('/matches/{}'.format(mid))
+            #pp(match)
+            M = self.shorten_data([match], {'players': ['account_id', 'hero_id', 'solo_competitive_rank'], 'match_id': None})
+
+            pp(M)
+            matches.append(M[0])
+
+        pp(matches)
+        matches = {m['match_id']:m['players'] for m in matches}
+        self.write_json_file(outfile, matches)
+
+def solo():
+    '''
+    Tanner, Run this on the 16 gb machine you have; it should take 16 hrs like the last one
+    '''
+    h = BasicHeroData()
+    dir_1 = './Data/Matches_By_Id/chunked/'
+    dir_2 = './Data/Matches/solo_chunked/'
+    if not os.path.isdir(dir_1):
+        os.mkdir(dir_1)
+    if not os.path.isdir(dir_2):
+        os.mkdir(dir_2)
+    for i in range(1,47):
+        h.get_player_rankings('{}{}.json'.format(dir_1, str(i)), '{}{}.json'.format(dir_2, str(i)))
+    h.get_player_rankings('{}remainder.json'.format(dir_1), '{}remainder.json'.format(dir_2))
 
 
 
+def run_on_machine(low, high):
+    h = BasicHeroData()
+    dir_1 = './Data/Matches_By_Id/chunked/'
+    dir_2 = './Data/Matches/chunked_players/'
+    if not os.path.isdir(dir_1):
+        os.mkdir(dir_1)
+    if not os.path.isdir(dir_2):
+        os.mkdir(dir_2)
+    for i in range(low,high):
+        h.get_player_rankings('{}{}.json'.format(dir_1, str(i)), '{}{}.json'.format(dir_2, str(i)))
+    h.get_player_rankings('{}remainder.json'.format(dir_1), '{}remainder.json'.format(dir_2))   
+
+#TANNER, run one of these on each of the amazon machines
+
+def machine_1():
+    run_on_machine(1, 3)
+def machine_2():
+    run_on_machine(3, 5)
+def machine_3():
+    run_on_machine(5, 7)
+def machine_4():
+    run_on_machine(7, 9)
+def machine_5():
+    run_on_machine(9, 11)
+def machine_6():
+    run_on_machine(11, 13)
+def machine_7():
+    run_on_machine(13, 15)
+def machine_8():
+    run_on_machine(15, 17)
+def machine_9():
+    run_on_machine(17, 19)
+def machine_10():
+    run_on_machine(19, 21)
 
 
+def make_dummy_input_array(features, num_samples):
+
+    X = np.empty((0, features))
+    for i in range(0, num_samples):
+
+        arr = np.zeros(shape=(features, 1))
+
+        for i in range(features):
+            # arr[i] = np.random.u
+            arr[i] = np.random.random_integers(0, 1)
+            # arr[i] = np.random.random_integers(0, 9)
+
+        arr = arr.T
+        X = np.append(X, arr, axis=0)
+
+    return X
+
+# def switch(original_arr_row):
+#     original_arr_feature_size = original_arr_row.shape[0]
+#
+#     # if ((original_arr_feature_size % 2) == 0
+#
+#     team_2_starting_index = original_arr_feature_size // 2
+#     # print(team_2_starting_index)
+#     a = original_arr_row
+#     b = np.empty(original_arr_feature_size)
+#
+#     for i in range(0, team_2_starting_index):
+#         b[i] = a[team_2_starting_index + i]
+#
+#     for i in range(0, team_2_starting_index)
+#         b[team_2_starting_index + i] = a[i]
+#
+#     return b
+
+# def double( original_arr):
+#     original_arr_sample_size = original_arr.shape[0]
+#     original_arr_feature_size = original_arr.shape[1]
+
+    # return np.matrix()
 
 
-
-
-
-
-    def make_dummy_input_array(self, features, num_samples):
-
-        X = np.empty((0, features))
-        for i in range(0, num_samples):
-
-            arr = np.zeros(shape=(features, 1))
-
-            for i in range(features):
-                # arr[i] = np.random.u
-                arr[i] = np.random.random_integers(0, 1)
-                # arr[i] = np.random.random_integers(0, 9)
-
-            arr = arr.T
-            X = np.append(X, arr, axis=0)
-
-        return X
-
-    # def switch(self, original_arr_row):
-    #     original_arr_feature_size = original_arr_row.shape[0]
+    # # print(original_arr_sample_size)
+    # a2 = original_arr
     #
-    #     # if ((original_arr_feature_size % 2) == 0
+    # X = np.empty((0, original_arr_feature_size))
     #
-    #     team_2_starting_index = original_arr_feature_size // 2
-    #     # print(team_2_starting_index)
-    #     a = original_arr_row
-    #     b = np.empty(original_arr_feature_size)
+    # # print(X.shape)
+    # for row in range(0, original_arr_sample_size):
+    #     arr = np.zeros(shape=(original_arr_feature_size, 1))
+    #     for j in range(0, original_arr_feature_size):
+    #         arr[j] = a2[row][j]
+    #     arr = arr.T
+    #     X = np.append(X, arr, axis=0)
     #
-    #     for i in range(0, team_2_starting_index):
-    #         b[i] = a[team_2_starting_index + i]
-    #
-    #     for i in range(0, team_2_starting_index)
-    #         b[team_2_starting_index + i] = a[i]
-    #
-    #     return b
+    #     arr = np.zeros(shape=(original_arr_feature_size, 1))
+    #     switched = self.switch(a2[row])
+    #     for j in range(0, original_arr_feature_size):
+    #         arr[j] = switched[j]
+    #     arr = arr.T
+    #     X = np.append(X, arr, axis=0)
 
-    # def double(self, original_arr):
-    #     original_arr_sample_size = original_arr.shape[0]
-    #     original_arr_feature_size = original_arr.shape[1]
+    # return X
 
-        # return np.matrix()
-
-
-        # # print(original_arr_sample_size)
-        # a2 = original_arr
-        #
-        # X = np.empty((0, original_arr_feature_size))
-        #
-        # # print(X.shape)
-        # for row in range(0, original_arr_sample_size):
-        #     arr = np.zeros(shape=(original_arr_feature_size, 1))
-        #     for j in range(0, original_arr_feature_size):
-        #         arr[j] = a2[row][j]
-        #     arr = arr.T
-        #     X = np.append(X, arr, axis=0)
-        #
-        #     arr = np.zeros(shape=(original_arr_feature_size, 1))
-        #     switched = self.switch(a2[row])
-        #     for j in range(0, original_arr_feature_size):
-        #         arr[j] = switched[j]
-        #     arr = arr.T
-        #     X = np.append(X, arr, axis=0)
-
-        # return X
-
-    def double_inverse_samples(self, original_arr):
-        doubled_arr = np.zeros((original_arr.shape[0] * 2, original_arr.shape[1]))
-        j = 0
-        for i in range (0, doubled_arr.shape[0], 2):
-            doubled_arr[i] = np.copy(original_arr[j])
-            # doubled_arr[i+1] = np.copy(original_arr[j])
-            doubled_arr[i+1] = [0 if x == True else 1 for x in original_arr[j]]
-            j = j + 1
-        return doubled_arr
+def double_inverse_samples(original_arr):
+    doubled_arr = np.zeros((original_arr.shape[0] * 2, original_arr.shape[1]))
+    j = 0
+    for i in range (0, doubled_arr.shape[0], 2):
+        doubled_arr[i] = np.copy(original_arr[j])
+        # doubled_arr[i+1] = np.copy(original_arr[j])
+        doubled_arr[i+1] = [0 if x == True else 1 for x in original_arr[j]]
+        j = j + 1
+    return doubled_arr
         # A = np.ones((4, 3))
         # B = np.zeros_like(A)
         #
@@ -508,46 +605,8 @@ class BasicHeroData(DotaData):
 
 
 if __name__ == '__main__':
-    #BasicHeroData()._match_id_dict_to_list('./Data/Matches_By_Id/40000_plus_matches.json', './Data/Matches_By_Id/40k_id_list.json')
-
-    #BasicHeroData()._save_data_dropped_features(.005, 'threshold_005.json')
-
-    # r = requests.get('https://api.opendota.com/api/matches/3191602004')
-    # print r
-    # print r.content
-
-    h = BasicHeroData()
-
-    features = 10
-    num_samples = 10
-
-    print()
-
-    a = h.make_dummy_input_array(features, num_samples)
-
-    # print(a.shape)
-
-    h.double_inverse_samples(a)
+    run_on_machine(21, 23)
 
 
 
-
-    features = 1
-    num_samples = 10
-
-    print()
-
-    a = h.make_dummy_input_array(features, num_samples)
-
-    # print(a.shape)
-
-    h.double_inverse_samples(a)
-
-    # print(a)
-    # print()
-    #
-    # print(h.double(a))
-    #
-    # print(h.double(a).shape)
-    #
 
