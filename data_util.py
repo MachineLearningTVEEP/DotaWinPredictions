@@ -4,6 +4,7 @@ from numpy import dstack
 
 from time import sleep
 import json
+import os
 import matplotlib.pyplot as plt
 
 
@@ -414,12 +415,55 @@ class BasicHeroData(DotaData):
         self.write_json_file(write_path, sorted([m['match_id'] for m in matches]))
 
 
+    def get_player_rankings(self, infile, outfile):
+        '''
+        TODO
+        '''
+        match_ids = self.read_json_file(infile)
+
+        matches = []
+
+        for mid in match_ids:
+            status, match = self.get('/matches/{}'.format(mid))
+            pp(match)
+            M = self.shorten_data([match], {'players': ['account_id', 'hero_id'], 'match_id': None})
+
+            pp(M)
+            _M = []
+            for player in M[0]['players']:
+                status, _player = self.get('/players/{}'.format(player['account_id']))
+                #pp(player)
+                sleep(1.1)
+                pp(player)
+                p = (self.shorten_data([_player], {'solo_competitive_rank':None, 'competitive_rank': None, 'mmr_estimate':None}))
+                pp(p)
+                #p.update(player)
+                player.update(p[0])
+
+            pp(M)
+            matches.append(M[0])
+
+        pp(matches)
+        matches = {m['match_id']:m['players'] for m in matches}
+        pp(matches)
+
+        self.write_json_file(outfile, matches)
 
 
 
 
 
-
+def tanner_run_this():
+    h = BasicHeroData()
+    dir_1 = './Data/Matches_By_Id/chunked/'
+    dir_2 = './Data/Matches/chunked_players/'
+    if not os.path.isdir(dir_1):
+        os.mkdir(dir_1)
+    if not os.path.isdir(dir_2):
+        os.mkdir(dir_2)
+    for i in range(1,47):
+        h.get_player_rankings('{}{}.json'.format(dir_1, str(i)), '{}{}.json'.format(dir_2, str(i)))
+    h.get_player_rankings('{}remainder.json'.format(dir_1), '{}remainder.json'.format(dir_2))
 
 
 
@@ -508,47 +552,13 @@ def double_inverse_samples(original_arr):
 
 
 if __name__ == '__main__':
-    #BasicHeroData()._match_id_dict_to_list('./Data/Matches_By_Id/40000_plus_matches.json', './Data/Matches_By_Id/40k_id_list.json')
+    tanner_run_this()
 
-    #BasicHeroData()._save_data_dropped_features(.005, 'threshold_005.json')
+    #print M
+    #matches = {m['match_id']:[p['account_id'] for p in m['players']] for m in M}
+    #for match_id_key in matches:
 
-    # r = requests.get('https://api.opendota.com/api/matches/3191602004')
-    # print r
-    # print r.content
-
-    #h = BasicHeroData()
-
-    features = 10
-    num_samples = 10
-
-    print()
-
-    a = make_dummy_input_array(features, num_samples)
-    print a
-
-    # print(a.shape)
-
-    print double_inverse_samples(a)
+    #print matches
 
 
-
-
-    features = 1
-    num_samples = 10
-
-    print()
-
-    a = make_dummy_input_array(features, num_samples)
-
-    # print(a.shape)
-
-    double_inverse_samples(a)
-
-    # print(a)
-    # print()
-    #
-    # print(h.double(a))
-    #
-    # print(h.double(a).shape)
-    #
 
