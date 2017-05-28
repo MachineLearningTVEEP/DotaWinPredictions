@@ -425,79 +425,79 @@ class BasicHeroData(DotaData):
 
 
 
-    def make_dummy_input_array(self, features, num_samples):
+def make_dummy_input_array(features, num_samples):
 
-        X = np.empty((0, features))
-        for i in range(0, num_samples):
+    X = np.empty((0, features))
+    for i in range(0, num_samples):
 
-            arr = np.zeros(shape=(features, 1))
+        arr = np.zeros(shape=(features, 1))
 
-            for i in range(features):
-                # arr[i] = np.random.u
-                arr[i] = np.random.random_integers(0, 1)
-                # arr[i] = np.random.random_integers(0, 9)
+        for i in range(features):
+            # arr[i] = np.random.u
+            arr[i] = np.random.random_integers(0, 1)
+            # arr[i] = np.random.random_integers(0, 9)
 
-            arr = arr.T
-            X = np.append(X, arr, axis=0)
+        arr = arr.T
+        X = np.append(X, arr, axis=0)
 
-        return X
+    return X
 
-    # def switch(self, original_arr_row):
-    #     original_arr_feature_size = original_arr_row.shape[0]
+# def switch(original_arr_row):
+#     original_arr_feature_size = original_arr_row.shape[0]
+#
+#     # if ((original_arr_feature_size % 2) == 0
+#
+#     team_2_starting_index = original_arr_feature_size // 2
+#     # print(team_2_starting_index)
+#     a = original_arr_row
+#     b = np.empty(original_arr_feature_size)
+#
+#     for i in range(0, team_2_starting_index):
+#         b[i] = a[team_2_starting_index + i]
+#
+#     for i in range(0, team_2_starting_index)
+#         b[team_2_starting_index + i] = a[i]
+#
+#     return b
+
+# def double( original_arr):
+#     original_arr_sample_size = original_arr.shape[0]
+#     original_arr_feature_size = original_arr.shape[1]
+
+    # return np.matrix()
+
+
+    # # print(original_arr_sample_size)
+    # a2 = original_arr
     #
-    #     # if ((original_arr_feature_size % 2) == 0
+    # X = np.empty((0, original_arr_feature_size))
     #
-    #     team_2_starting_index = original_arr_feature_size // 2
-    #     # print(team_2_starting_index)
-    #     a = original_arr_row
-    #     b = np.empty(original_arr_feature_size)
+    # # print(X.shape)
+    # for row in range(0, original_arr_sample_size):
+    #     arr = np.zeros(shape=(original_arr_feature_size, 1))
+    #     for j in range(0, original_arr_feature_size):
+    #         arr[j] = a2[row][j]
+    #     arr = arr.T
+    #     X = np.append(X, arr, axis=0)
     #
-    #     for i in range(0, team_2_starting_index):
-    #         b[i] = a[team_2_starting_index + i]
-    #
-    #     for i in range(0, team_2_starting_index)
-    #         b[team_2_starting_index + i] = a[i]
-    #
-    #     return b
+    #     arr = np.zeros(shape=(original_arr_feature_size, 1))
+    #     switched = self.switch(a2[row])
+    #     for j in range(0, original_arr_feature_size):
+    #         arr[j] = switched[j]
+    #     arr = arr.T
+    #     X = np.append(X, arr, axis=0)
 
-    # def double(self, original_arr):
-    #     original_arr_sample_size = original_arr.shape[0]
-    #     original_arr_feature_size = original_arr.shape[1]
+    # return X
 
-        # return np.matrix()
-
-
-        # # print(original_arr_sample_size)
-        # a2 = original_arr
-        #
-        # X = np.empty((0, original_arr_feature_size))
-        #
-        # # print(X.shape)
-        # for row in range(0, original_arr_sample_size):
-        #     arr = np.zeros(shape=(original_arr_feature_size, 1))
-        #     for j in range(0, original_arr_feature_size):
-        #         arr[j] = a2[row][j]
-        #     arr = arr.T
-        #     X = np.append(X, arr, axis=0)
-        #
-        #     arr = np.zeros(shape=(original_arr_feature_size, 1))
-        #     switched = self.switch(a2[row])
-        #     for j in range(0, original_arr_feature_size):
-        #         arr[j] = switched[j]
-        #     arr = arr.T
-        #     X = np.append(X, arr, axis=0)
-
-        # return X
-
-    def double_inverse_samples(self, original_arr):
-        doubled_arr = np.zeros((original_arr.shape[0] * 2, original_arr.shape[1]))
-        j = 0
-        for i in range (0, doubled_arr.shape[0], 2):
-            doubled_arr[i] = np.copy(original_arr[j])
-            # doubled_arr[i+1] = np.copy(original_arr[j])
-            doubled_arr[i+1] = [0 if x == True else 1 for x in original_arr[j]]
-            j = j + 1
-        return doubled_arr
+def double_inverse_samples(original_arr):
+    doubled_arr = np.zeros((original_arr.shape[0] * 2, original_arr.shape[1]))
+    j = 0
+    for i in range (0, doubled_arr.shape[0], 2):
+        doubled_arr[i] = np.copy(original_arr[j])
+        # doubled_arr[i+1] = np.copy(original_arr[j])
+        doubled_arr[i+1] = [0 if x == True else 1 for x in original_arr[j]]
+        j = j + 1
+    return doubled_arr
         # A = np.ones((4, 3))
         # B = np.zeros_like(A)
         #
@@ -516,18 +516,19 @@ if __name__ == '__main__':
     # print r
     # print r.content
 
-    h = BasicHeroData()
+    #h = BasicHeroData()
 
     features = 10
     num_samples = 10
 
     print()
 
-    a = h.make_dummy_input_array(features, num_samples)
+    a = make_dummy_input_array(features, num_samples)
+    print a
 
     # print(a.shape)
 
-    h.double_inverse_samples(a)
+    print double_inverse_samples(a)
 
 
 
@@ -537,11 +538,11 @@ if __name__ == '__main__':
 
     print()
 
-    a = h.make_dummy_input_array(features, num_samples)
+    a = make_dummy_input_array(features, num_samples)
 
     # print(a.shape)
 
-    h.double_inverse_samples(a)
+    double_inverse_samples(a)
 
     # print(a)
     # print()
