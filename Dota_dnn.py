@@ -1,11 +1,12 @@
 # The modules we're going to use
-#from __future__ import print_function
+from __future__ import print_function
 
-from sklearn.model_selection import train_test_split
+from keras.layers import Dense
+from keras.layers import GaussianNoise, GaussianDropout
 from keras.models import Sequential
-from keras.layers import Dense, Activation, GaussianNoise, GaussianDropout
-from keras.utils import np_utils
 from keras.optimizers import Adam
+from keras.utils import np_utils
+from sklearn.model_selection import train_test_split
 from keras.datasets import mnist
 from keras.callbacks import TensorBoard
 from data_util import BasicHeroData, double_inverse_samples
@@ -83,7 +84,6 @@ class DnnModel(ModelOutput):
         }
 
         return metrics, model
-
 
 if __name__ == '__main__':
     # run model with various thresholds and epoch/batch sizes

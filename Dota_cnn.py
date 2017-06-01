@@ -8,6 +8,7 @@ from data_util import BasicHeroData, double_inverse_samples
 
 import numpy as np
 
+#set numpy seed
 np.random.seed(1337)
 import matplotlib.pyplot as plt
 import matplotlib
@@ -18,9 +19,9 @@ from model_output import ModelOutput
 class CnnModel(ModelOutput):
 
     def run_model(self, data, targets, batch_size, epochs):
-        # double the sample
-        data = double_inverse_samples(data)
-        targets = double_inverse_samples(targets)
+        # double the sample - disabled
+        #data = double_inverse_samples(data)
+        #targets = double_inverse_samples(targets)
 
         test_size_1 = 0.25
         test_size_2 = 0.15
@@ -111,7 +112,6 @@ class CnnModel(ModelOutput):
 
         return metrics, model
 
-
 if __name__ == '__main__':
     # run model with various thresholds and epoch/batch sizes
 
@@ -127,4 +127,5 @@ if __name__ == '__main__':
     #CnnModel('./Data/hero_data/threshold_004.json', 'cnn', 'cnn', 32, 20)
     #CnnModel('./Data/hero_data/threshold_005.json', 'cnn', 'cnn', 32, 20)
     #CnnModel('./Data/hero_data/full_40000_plus_data.json', 'cnn', 'cnn', 32, 20)
+
 
