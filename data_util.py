@@ -492,7 +492,6 @@ def solo():
     h.get_player_rankings('{}remainder.json'.format(dir_1), '{}remainder.json'.format(dir_2))
 
 
-
 def run_on_machine(low, high):
     '''
     Inputs: start file name (number in range), end file name (number in range)
@@ -512,9 +511,10 @@ def run_on_machine(low, high):
 
 
 
-
 def make_dummy_input_array(features, num_samples):
-
+    '''
+        used to make a array with random elements to start
+    '''
     X = np.empty((0, features))
     for i in range(0, num_samples):
 
@@ -530,72 +530,19 @@ def make_dummy_input_array(features, num_samples):
 
     return X
 
-# def switch(original_arr_row):
-#     original_arr_feature_size = original_arr_row.shape[0]
-#
-#     # if ((original_arr_feature_size % 2) == 0
-#
-#     team_2_starting_index = original_arr_feature_size // 2
-#     # print(team_2_starting_index)
-#     a = original_arr_row
-#     b = np.empty(original_arr_feature_size)
-#
-#     for i in range(0, team_2_starting_index):
-#         b[i] = a[team_2_starting_index + i]
-#
-#     for i in range(0, team_2_starting_index)
-#         b[team_2_starting_index + i] = a[i]
-#
-#     return b
-
-# def double( original_arr):
-#     original_arr_sample_size = original_arr.shape[0]
-#     original_arr_feature_size = original_arr.shape[1]
-
-    # return np.matrix()
-
-
-    # # print(original_arr_sample_size)
-    # a2 = original_arr
-    #
-    # X = np.empty((0, original_arr_feature_size))
-    #
-    # # print(X.shape)
-    # for row in range(0, original_arr_sample_size):
-    #     arr = np.zeros(shape=(original_arr_feature_size, 1))
-    #     for j in range(0, original_arr_feature_size):
-    #         arr[j] = a2[row][j]
-    #     arr = arr.T
-    #     X = np.append(X, arr, axis=0)
-    #
-    #     arr = np.zeros(shape=(original_arr_feature_size, 1))
-    #     switched = self.switch(a2[row])
-    #     for j in range(0, original_arr_feature_size):
-    #         arr[j] = switched[j]
-    #     arr = arr.T
-    #     X = np.append(X, arr, axis=0)
-
-    # return X
 
 def double_inverse_samples(original_arr):
+    '''
+        input is an array whereeach row is duplicated and inserted after that current row and the values are flipped
+        for data and for target
+    '''
     doubled_arr = np.zeros((original_arr.shape[0] * 2, original_arr.shape[1]))
     j = 0
     for i in range (0, doubled_arr.shape[0], 2):
         doubled_arr[i] = np.copy(original_arr[j])
-        # doubled_arr[i+1] = np.copy(original_arr[j])
         doubled_arr[i+1] = [0 if x == True else 1 for x in original_arr[j]]
         j = j + 1
     return doubled_arr
-        # A = np.ones((4, 3))
-        # B = np.zeros_like(A)
-        #
-        # C = np.empty((A.shape[0] + B.shape[0], A.shape[1]))
-        #
-        # C[::2, :] = A
-        # C[1::2, :] = B
-
-
-
 
 
 
