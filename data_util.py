@@ -85,14 +85,15 @@ class DotaData(object):
         if np_only is True:
             return np.array(data)
         if isinstance(data, list):
-            features = data[0].keys()
-            if all([d.keys() == features for d in data]):
-                l = [[v for k, v in sorted(d.items())] for d in data]
-                return features, np.array(l)
-            else:
-                base_feature_set, extra_features = self.extract_base_features(data)
-                l = [[v for k, v in sorted(d.items()) if k in base_feature_set] for d in data]
-                return base_feature_set, np.array(l)
+            if len(data) > 0 and isinstance(data[0], dict):
+                features = data[0].keys()
+                if all([d.keys() == features for d in data]):
+                    l = [[v for k, v in sorted(d.items())] for d in data]
+                    return features, np.array(l)
+                else:
+                    base_feature_set, extra_features = self.extract_base_features(data)
+                    l = [[v for k, v in sorted(d.items()) if k in base_feature_set] for d in data]
+                    return base_feature_set, np.array(l)
         raise NumpyException("Unable to transform data into numpy array")
 
     def sub_dicts(self, data, desired_keys):
@@ -127,18 +128,19 @@ class DotaData(object):
         Returns a list of dicts with the structure of desired_keys (2 levels only)
         '''
         assert isinstance(desired_keys, dict)
+        if data is not None:
+            _data = self.sub_dicts(data, desired_keys.keys())
 
-        _data = self.sub_dicts(data, desired_keys.keys())
+            for d in _data:
+                # for key, value in desired_keys.iteritems():
+                for key, value in desired_keys.items():
+                    if value is not None:
+                        assert isinstance(value, list)
+                        assert isinstance(d[key], list)
+                        d[key] = self.sub_dicts(d[key], value)
 
-        for d in _data:
-            # for key, value in desired_keys.iteritems():
-            for key, value in desired_keys.items():
-                if value is not None:
-                    assert isinstance(value, list)
-                    assert isinstance(d[key], list)
-                    d[key] = self.sub_dicts(d[key], value)
-
-        return _data
+            return _data
+        return data
 
 
 class BasicHeroData(DotaData):
@@ -417,15 +419,16 @@ class BasicHeroData(DotaData):
 
     def get_player_rankings(self, infile, outfile):
         '''
-        TODO
+        Inputs: infile of match ids, outfile path
+        gets player solo_competitive_rank, competitive_rank, and mmr_estimate for each match id in input file
         '''
-        print "A"
+        print "in get_player_rankings"
         match_ids = self.read_json_file(infile)
-
+        print len(match_ids)
         matches = []
 
         for mid in match_ids:
-            print "B"
+            print mid
             status, match = self.get('/matches/{}'.format(mid))
             #pp(match)
             M = self.shorten_data([match], {'players': ['account_id', 'hero_id'], 'match_id': None})
@@ -434,7 +437,7 @@ class BasicHeroData(DotaData):
             _M = []
             for player in M[0]['players']:
                 status, _player = self.get('/players/{}'.format(player['account_id']))
-                #pp(player)
+                pp(_player)
                 sleep(1.1)
                 #pp(player)
                 p = (self.shorten_data([_player], {'solo_competitive_rank':None, 'competitive_rank': None, 'mmr_estimate':None}))
@@ -452,6 +455,10 @@ class BasicHeroData(DotaData):
         self.write_json_file(outfile, matches)
 
     def get_solo_player_rankings(self, infile, outfile):
+        '''
+        Inputs: infile of match ids, outfile path
+        Gets player solo_competitive_rank for each match id in input file
+        '''
 
         match_ids = self.read_json_file(infile)
 
@@ -469,11 +476,45 @@ class BasicHeroData(DotaData):
         matches = {m['match_id']:m['players'] for m in matches}
         self.write_json_file(outfile, matches)
 
-'''
-    used to make a array with random elements to start
-'''
-def make_dummy_input_array(features, num_samples):
+def solo():
+    '''
+    Gets player rankings
+    '''
+    h = BasicHeroData()
+    dir_1 = './Data/Matches_By_Id/chunked/'
+    dir_2 = './Data/Matches/solo_chunked/'
+    if not os.path.isdir(dir_1):
+        os.mkdir(dir_1)
+    if not os.path.isdir(dir_2):
+        os.mkdir(dir_2)
+    for i in range(1,47):
+        h.get_player_rankings('{}{}.json'.format(dir_1, str(i)), '{}{}.json'.format(dir_2, str(i)))
+    h.get_player_rankings('{}remainder.json'.format(dir_1), '{}remainder.json'.format(dir_2))
 
+
+def run_on_machine(low, high):
+    '''
+    Inputs: start file name (number in range), end file name (number in range)
+    Get player rankings
+    Intended to be run on separate VMS
+    '''
+    h = BasicHeroData()
+    dir_1 = './Data/Matches_By_Id/chunked/'
+    dir_2 = './Data/Matches/chunked_players/'
+    if not os.path.isdir(dir_1):
+        os.mkdir(dir_1)
+    if not os.path.isdir(dir_2):
+        os.mkdir(dir_2)
+    for i in range(low,high):
+        h.get_player_rankings('{}{}.json'.format(dir_1, str(i)), '{}{}.json'.format(dir_2, str(i)))
+    h.get_player_rankings('{}remainder.json'.format(dir_1), '{}remainder.json'.format(dir_2))   
+
+
+
+def make_dummy_input_array(features, num_samples):
+    '''
+        used to make a array with random elements to start
+    '''
     X = np.empty((0, features))
     for i in range(0, num_samples):
 
@@ -489,11 +530,12 @@ def make_dummy_input_array(features, num_samples):
 
     return X
 
-'''
-    input is an array whereeach row is duplicated and inserted after that current row and the values are flipped
-    for data and for target
-'''
+
 def double_inverse_samples(original_arr):
+    '''
+        input is an array whereeach row is duplicated and inserted after that current row and the values are flipped
+        for data and for target
+    '''
     doubled_arr = np.zeros((original_arr.shape[0] * 2, original_arr.shape[1]))
     j = 0
     for i in range (0, doubled_arr.shape[0], 2):
@@ -502,8 +544,7 @@ def double_inverse_samples(original_arr):
         j = j + 1
     return doubled_arr
 
-if __name__ == '__main__':
-    print("Welcome")
+
 
 
 
