@@ -10,10 +10,11 @@ from model_output import ModelOutput
 
 # display intercept
 def p_intercept(intercept):
-	print("The intercept is {}".format(intercept))
+    print("The intercept is {}".format(intercept))
+
 # display coefficients
 def p_coefficients(coefficients):
-	print("The coefficients are {}".format(", ".join(str(x) for x in coefficients.flatten().tolist())))
+    print("The coefficients are {}".format(", ".join(str(x) for x in coefficients.flatten().tolist())))
 
 class LgrModel(ModelOutput):
 	def run_model(self, data, targets, batch_size, epochs):
@@ -62,6 +63,4 @@ class LgrModel(ModelOutput):
 		return metrics, lgr
 
 if __name__ == '__main__':
-	print()
-	# fun machine learning on dataset
-    # LgrModel('./Data/hero_data/full_40000_plus_data.json', 'lgr', 'lgr', None, None)
+    LgrModel('./Data/hero_data/full_40000_plus_data.json', 'lgr', 'lgr', None, None)

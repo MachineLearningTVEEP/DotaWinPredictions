@@ -7,77 +7,104 @@ from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.utils import np_utils
 from sklearn.model_selection import train_test_split
+from keras.datasets import mnist
+from keras.callbacks import TensorBoard
+from data_util import BasicHeroData, double_inverse_samples
+from sklearn.metrics import accuracy_score
+from keras.optimizers import SGD
+from keras.layers import Dense, Activation, convolutional, pooling, Flatten, Dropout
+import numpy as np
 
-from data_util import BasicHeroData
+from model_output import ModelOutput
 
-def dnn(data, targets, modelfile=None):
-    # split the data up into multiple sets: training, testing validation
-    train_data, data_set_2, train_target, target_set_2 = train_test_split(data, targets, test_size=0.25, random_state=42)
-    test_data, val_data, test_target, val_target = train_test_split(data_set_2, target_set_2, test_size=0.15, random_state=24)
-    # display dataset sizes
-    print('Normal, X_train size: ', train_data.shape)
-    print('Normal, y_train size: ', train_target.shape)
-    print('Normal, X_test size: ', test_data.shape)
-    print('Normal, y_test size: ', test_target.shape)
-    print()
-    # Pre-processing
-    X_train = train_data.reshape(train_data.shape[0],-1)
-    X_test = test_data.reshape(test_data.shape[0],-1)
-    y_train = np_utils.to_categorical(train_target, 2)
-    y_test = np_utils.to_categorical(test_target, 2)
-    val_data = val_data.reshape(val_data.shape[0],-1)
-    val_target = np_utils.to_categorical(val_target, 2)
-    # display dataset sizes after processing
-    print('After pre-processing, X_train size: ', X_train.shape)
-    print('After pre-processing, y_train size: ', y_train.shape)
-    print('After pre-processing, X_test size: ', X_test.shape)
-    print('After pre-processing, y_test size: ', y_test.shape)
-    print()
-    # create a linear model
-    model = Sequential()
-    # add a dense layer with 2048 neurons with data set size
-    model.add(Dense(2048, activation='relu', input_dim=train_data.shape[1]))
-    # add noise to the dataset
-    model.add(GaussianNoise(.5))
-    #add a dropout rate to the dataset
-    model.add(GaussianDropout(.5))
-    # add a 2 neuron dense layer with softmax to make the categories
-    model.add(Dense(2, activation='softmax'))
-    # define adam optimizer
-    adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-    # compile model using crossentropy
-    model.compile(
-        optimizer = adam,
-        loss='categorical_crossentropy',
-        metrics=['accuracy']
-    )
-    # fit the model and use cross validation
-    model.fit(X_train, y_train, batch_size = 64, epochs=25, verbose=2, validation_data=(val_data, val_target) )
-    # get the loss and accuracy of our model
-    loss, accuracy = model.evaluate(X_test, y_test, verbose=2)
-    # display results on testing data
-    print('The loss on testing data', loss)
-    print('The accuracy on testing data', accuracy)
-    # get the loss and accuracy of our model
-    loss, accuracy = model.evaluate(val_data, val_target, verbose=2)
-    # display results on validation data
-    print('The loss on validation data', loss)
-    print('The accuracy on validaiton data', accuracy)
-    # save model if flag is set
-    if modelfile:
-        if modelfile.endswith('.h5'):
-            model.save('./models/{}'.format(modelfile))
-        else:
-            print ("Can't save your model; bad extension")
+from keras.regularizers import l2
+
+class DnnModel(ModelOutput):
+
+    def run_model(self, data, targets, batch_size, epochs):
+
+        test_size_1 = 0.25
+        test_size_2 = 0.2
+        noise = 0.5
+        drop_out = 0.5
+
+
+        # split the data up into multiple sets: training, testing validation
+        train_data, data_set_2, train_target, target_set_2 = train_test_split(data, targets, test_size=test_size_1, random_state=42)
+        test_data, val_data, test_target, val_target = train_test_split(data_set_2, target_set_2, test_size=test_size_2, random_state=24)
+
+        # Pre-processing
+        X_train = train_data.reshape(train_data.shape[0],-1)
+        X_test = test_data.reshape(test_data.shape[0],-1)
+        y_train = np_utils.to_categorical(train_target, 2)
+        y_test = np_utils.to_categorical(test_target, 2)
+        val_data = val_data.reshape(val_data.shape[0],-1)
+        val_target = np_utils.to_categorical(val_target, 2)
+
+        # create a linear model
+
+        model = Sequential()
+        # add a dense layer with 2048 neurons, relu activation
+        model.add(Dense(2048, activation='relu', input_dim=train_data.shape[1]))
+        # add noise to the dataset
+        model.add(GaussianNoise(noise))
+        # set the dropout rate to avoid overfitting
+        model.add(GaussianDropout(drop_out))
+        #add dense layer with 2 neurons and softmax activation to get categories, also l2 norm
+        model.add(Dense(2, activation='softmax', W_regularizer=l2(0.01)))
+        # define adam optimizer
+        adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+        # compile mode to use cross entropy
+        model.compile(
+            optimizer = adam,
+            loss='categorical_crossentropy',
+            metrics=['accuracy']
+        )
+
+        # fit the model and use cross validation
+        model.fit(X_train, y_train, batch_size = batch_size, epochs=epochs, verbose=2, validation_data=(val_data, val_target) )
+        # get the test loss and accuracy of our model
+        test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=2)
+        # get the validation loss and accuracy of our model
+        val_loss, val_accuracy = model.evaluate(val_data, val_target, verbose=2)
+        # collect metrics for output
+        metrics = {
+            "test_loss": test_loss,
+            "test_accuracy": test_accuracy,
+            "val_loss": val_loss,
+            "val_accuracy": val_accuracy,
+            "batch_size": batch_size,
+            "epochs": epochs,
+            "test_size_1": test_size_1,
+            "test_size_2": test_size_2,
+            "noise": noise,
+            "drop_out": drop_out,
+            "data_doubled": "no",
+            "l2_reg": "yes"
+        }
+
+        return metrics, model
 
 if __name__ == '__main__':
-    # create hero data object
-    h = BasicHeroData()
-    # load in dataset
-    d = h.load_saved_hero_data('./Data/hero_data/threshold_003.json')
-    # extract dataset info
-    data, targets, features, target_labels = d
-    # call machine learning function
-    dnn(data, targets)
+    # run model with various thresholds and epoch/batch sizes
+
+    #DnnModel('./Data/hero_data/threshold_001.json', 'dnn', 'dnn', 64, 25)
+    #DnnModel('./Data/hero_data/threshold_002.json', 'dnn', 'dnn', 64, 25)
+    DnnModel('./Data/hero_data/threshold_003.json', 'dnn', 'dnn', 64, 25)
+    #DnnModel('./Data/hero_data/threshold_004.json', 'dnn', 'dnn', 64, 25)
+    #DnnModel('./Data/hero_data/threshold_005.json', 'dnn', 'dnn', 64, 25)
+    #DnnModel('./Data/hero_data/full_40000_plus_data.json', 'dnn', 'dnn', 64, 10)
+    #DnnModel('./Data/hero_data/threshold_001.json', 'dnn', 'dnn', 64, 10)
+    #DnnModel('./Data/hero_data/threshold_002.json', 'dnn', 'dnn', 64, 10)
+    #DnnModel('./Data/hero_data/threshold_003.json', 'dnn', 'dnn', 64, 10)
+    #DnnModel('./Data/hero_data/threshold_004.json', 'dnn', 'dnn', 64, 10)
+    #DnnModel('./Data/hero_data/threshold_005.json', 'dnn', 'dnn', 64, 10)
+    #DnnModel('./Data/hero_data/full_40000_plus_data.json', 'dnn', 'dnn', 64, 10)
+    #DnnModel('./Data/hero_data/threshold_001.json', 'dnn', 'dnn', 32, 20)
+    #DnnModel('./Data/hero_data/threshold_002.json', 'dnn', 'dnn', 32, 20)
+    #DnnModel('./Data/hero_data/threshold_003.json', 'dnn', 'dnn', 32, 20)
+    #DnnModel('./Data/hero_data/threshold_004.json', 'dnn', 'dnn', 32, 20)
+    #DnnModel('./Data/hero_data/threshold_005.json', 'dnn', 'dnn', 32, 20)
+    #DnnModel('./Data/hero_data/full_40000_plus_data.json', 'dnn', 'dnn', 32, 20)
 
 
